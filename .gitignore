@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+miniprogram_npm/
+
+# Cloud function dependencies
+cloudfunctions/*/node_modules/
+
+# Claude Code
+.claude/cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Private config (contains env ID & local settings)
+project.private.config.json
+
+# Build artifacts
+*.zip
+dist/
+
+# Logs
+*.log

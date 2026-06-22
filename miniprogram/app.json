@@ -1,0 +1,45 @@
+{
+  "pages": [
+    "view/pages/login/index",
+    "view/pages/lobby/index",
+    "view/pages/board/index",
+    "view/pages/tutorial/index",
+    "view/pages/history/index",
+    "view/pages/settings/index"
+  ],
+  "subpackages": [
+    {
+      "root": "view/subpackages/room",
+      "pages": [
+        "create/index",
+        "detail/index"
+      ]
+    },
+    {
+      "root": "view/subpackages/result",
+      "pages": [
+        "index"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "view/pages/lobby/index": {
+      "network": "all",
+      "packages": ["view/subpackages/room"]
+    },
+    "view/pages/board/index": {
+      "network": "all",
+      "packages": ["view/subpackages/result"]
+    }
+  },
+  "window": {
+    "backgroundColor": "#2C3A4A",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#2C3A4A",
+    "navigationBarTitleText": "达芬奇密码",
+    "navigationBarTextStyle": "white"
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,79 @@
+/**
+ * 全局主题样式 —— 所有页面级 wxss 通过 @import 引用。
+ * 值与 docs/DESIGN-SPEC.md §2 保持一致。
+ */
+
+page {
+  /* === 暗色主题（毛毡）=== */
+  --felt:              #2C3A4A;
+  --black-tile:        #1A1A1E;
+  --white-tile:        #EBEBE5;
+  --text-on-black:     #EBEBE5;
+  --text-on-white:     #1A1A1E;
+  --text-primary:      #EBEBE5;
+  --text-secondary:    #8A8A90;
+  --divider:           #3E4A58;
+  --panel-bg:          rgba(44,58,74,0.95);
+
+  /* === 明亮主题 === */
+  --bg-light:          #F5F5F0;
+  --text-light-primary:#1A1A1E;
+  --text-light-secondary: #8A8A90;
+  --divider-light:     rgba(0,0,0,0.08);
+  --panel-light:       #FFFFFF;
+
+  /* === 功能色 === */
+  --correct:           #4A7C59;
+  --error:             #8B4A4A;
+  --gold:              #9E8C6C;
+
+  /* === 字级 (rpx) === */
+  --fs-title:     44rpx;
+  --fs-subtitle:  36rpx;
+  --fs-body:      28rpx;
+  --fs-caption:   24rpx;
+  --fs-tile-lg:   48rpx;     /* 大牌数字 */
+  --fs-tile:      40rpx;     /* 标准牌数字 */
+  --fs-tile-sm:   32rpx;     /* 小牌数字 */
+
+  /* === 间距阶梯 (rpx) === */
+  --sp-xs:   8rpx;
+  --sp-sm:   16rpx;
+  --sp-md:   24rpx;
+  --sp-lg:   32rpx;
+  --sp-xl:   48rpx;
+
+  /* === 圆角 === */
+  --radius-sm:  8rpx;
+  --radius-md:  12rpx;
+  --radius-lg:  16rpx;
+
+  /* === 牌体 === */
+  --tile-ratio:    2;            /* 2:1 宽高比 */
+  --tile-radius:   4rpx;
+  --tile-gap:      8rpx;
+
+  /* === 基础样式 === */
+  background-color: var(--felt);
+  font-family: 'PingFang SC', -apple-system, sans-serif;
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+/* 通用容器 */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: var(--sp-md);
+}
+
+/* 通用按钮重置 */
+button {
+  background: initial;
+  padding: 0;
+  margin: 0;
+}
+button:focus { outline: 0; }
+button::after { border: none; }

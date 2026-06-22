@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude plugin *)",
+      "Read(//Users/jingwu/.claude/**)",
+      "mcp__plugin_cloudbase_cloudbase-mcp__auth",
+      "mcp__plugin_cloudbase_cloudbase-mcp__writeNoSqlDatabaseStructure",
+      "mcp__plugin_cloudbase_cloudbase-mcp__managePermissions",
+      "mcp__plugin_cloudbase_cloudbase-mcp__readNoSqlDatabaseStructure"
+    ]
+  }
+}

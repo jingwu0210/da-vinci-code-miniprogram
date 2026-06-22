@@ -1,0 +1,42 @@
+/**app.wxss — 全局样式 */
+
+/* === 引入主题变量 === */
+@import './common/theme.wxss';
+
+/* === 通用容器 === */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* === 按钮重置 === */
+button {
+  background: initial;
+  padding: 0;
+  margin: 0;
+}
+button:focus { outline: 0; }
+button::after { border: none; }
+
+/* === 页面基础 === */
+page {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  font-family: 'PingFang SC', -apple-system, sans-serif;
+}
+
+/* 毛毡背景页（登录+Board）—— 默认 */
+page {
+  background: var(--felt);
+  font-size: var(--fs-body);
+  color: var(--text-primary);
+}
+
+/* 明亮背景页（大厅/房间/结算/教程/历史/设置）—— 按页面覆盖 */
+.page-light {
+  background: var(--bg-light);
+  color: var(--text-light-primary);
+}
