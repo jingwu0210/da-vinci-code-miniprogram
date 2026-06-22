@@ -24,7 +24,7 @@ async function call(type, data = {}) {
 module.exports = {
   initGame:      (data) => call('initGame', data),
   getGameState:  (gameId) => call('getGameState', { gameId }),
-  drawTile:      (gameId) => call('drawTile', { gameId }),
+  drawTile:      (gameId, color) => call('drawTile', { gameId, color }),
   insertTile:    (gameId, position) => call('insertTile', { gameId, position }),
   makeGuess:     (gameId, targetOpenid, position, value) =>
                    call('makeGuess', { gameId, targetOpenid, position, value }),

@@ -30,9 +30,9 @@ const GameManager = {
 
   // ── 玩家操作 ──
 
-  async drawTile(gameId) {
+  async drawTile(gameId, color) {
     this._validate(gameId);
-    const resp = await GameCall.drawTile(gameId);
+    const resp = await GameCall.drawTile(gameId, color);
     this._handleError(resp);
     return resp.data;
   },

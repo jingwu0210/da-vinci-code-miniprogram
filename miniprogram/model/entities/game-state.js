@@ -1,22 +1,21 @@
 /**
  * GameState 实体 —— 对局状态的不可变更新。
- * 依赖: common/enums, common/constants, ../entities/tile, ../../utils/shuffle
+ * 依赖: common/enums, common/constants, ./tile, ../../utils/shuffle, ../../utils/sort-hand
  */
 
-const { Phase, GameMode } = require('../../common/enums');
-const { HAND_SIZE_2_3, HAND_SIZE_4 } = require('../../common/constants');
+const { Phase, Color } = require('../../common/enums');
+const { HAND_SIZE_2_3, HAND_SIZE_4, JOKER_VALUE } = require('../../common/constants');
 const Tile = require('./tile');
 const { shuffle } = require('../../utils/shuffle');
 const { sortHand } = require('../../utils/sort-hand');
 
 /**
  * 创建初始对局状态。
+ * pool 为颜色分池: { black: [Tile], white: [Tile] }
  */
 function createInitialState({ roomId, players, mode, difficulty = null }) {
-  // 1. 创建 + 洗牌
   const deck = shuffle(Tile.createDeckTiles());
 
-  // 2. 发牌
   const playerCount = players.length;
   const handSize = playerCount === 4 ? HAND_SIZE_4 : HAND_SIZE_2_3;
   const hands = {};
@@ -30,9 +29,14 @@ function createInitialState({ roomId, players, mode, difficulty = null }) {
     cursor += handSize;
   }
 
-  const pool = deck.slice(cursor);
+  // 剩余牌按颜色分池
+  const remaining = deck.slice(cursor);
+  const pool = {
+    black: remaining.filter(t => t.color === Color.BLACK),
+    white: remaining.filter(t => t.color === Color.WHITE),
+  };
 
-  // 3. 确定先手（最小数字牌）
+  // 确定先手（最小数字牌）
   let firstPlayer = players[0];
   let minValue = Infinity;
   for (const p of players) {
@@ -75,7 +79,34 @@ function update(gameState, changes) {
 }
 
 /**
- * 计算相对于某玩家的客户端视图。
+ * 从分色池中随机摸一张牌。
+ * 返回 { tile, pool } — tile 为 null 表示该颜色池空
+ */
+function drawFromPool(pool, color) {
+  const subPool = pool[color];
+  if (!subPool || subPool.length === 0) return { tile: null, pool };
+  const idx = Math.floor(Math.random() * subPool.length);
+  const newSub = [...subPool];
+  const [tile] = newSub.splice(idx, 1);
+  return {
+    tile,
+    pool: { ...pool, [color]: newSub },
+  };
+}
+
+/**
+ * 返回指定颜色牌池剩余数。
+ */
+function poolRemaining(pool) {
+  return {
+    black: pool.black.length,
+    white: pool.white.length,
+    total: pool.black.length + pool.white.length,
+  };
+}
+
+/**
+ * 计算相对于某玩家的客户端视图（sanitized）。
  */
 function getClientView(gameState, playerOpenid) {
   const selfHand = (gameState.hands[playerOpenid] || []).map(Tile.toSelfTile);
@@ -90,8 +121,10 @@ function getClientView(gameState, playerOpenid) {
     });
   }
 
+  const remaining = poolRemaining(gameState.pool);
+
   return {
-    gameId: gameState.roomId, // 实际应为 gameId，此处简化
+    gameId: gameState.roomId,
     roomId: gameState.roomId,
     status: gameState.status,
     self: { hand: selfHand, revealedCount: selfHand.filter(t => t.isRevealed).length },
@@ -100,7 +133,7 @@ function getClientView(gameState, playerOpenid) {
       phase:              gameState.phase,
       currentTurnOpenid:  gameState.turnOrder[gameState.turnIndex],
       turnNumber:         gameState.turnLog.length + 1,
-      poolRemaining:      gameState.pool.length,
+      poolRemaining:      remaining,
       myTurn:             gameState.turnOrder[gameState.turnIndex] === playerOpenid,
       winner:             gameState.winner,
       myDrawnTile:        gameState.drawnTileId
@@ -129,6 +162,8 @@ function allOpponentsEliminated(gameState, playerOpenid) {
 module.exports = {
   createInitialState,
   update,
+  drawFromPool,
+  poolRemaining,
   getClientView,
   findTileById,
   countUnrevealed,

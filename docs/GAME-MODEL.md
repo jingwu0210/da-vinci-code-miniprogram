@@ -141,13 +141,13 @@ GameState = {
 | 当前状态 | 事件 | 条件 | 下一状态 | 副作用 |
 |----------|------|------|----------|--------|
 | WAITING | `BEGIN_TURN` | 轮到该玩家 | DRAWING | 开始计时器 |
-| DRAWING | `DRAW_TILE` | 牌池非空 | INSERTING | pool.pop → drawnTileId |
-| DRAWING | `DRAW_TILE` | 牌池为空 | GUESSING | drawnTileId=null，无需插入 |
+| DRAWING | `DRAW_TILE(color)` | 该颜色池非空 | INSERTING | pool[color].splice → drawnTileId |
+| DRAWING | `DRAW_TILE` | 两颜色池皆空 | GUESSING | drawnTileId=null，无需插入 |
 | INSERTING | `INSERT(pos)` | 0 ≤ pos ≤ \|hand\| | GUESSING | 牌移至 hand[pos] |
 | GUESSING | `GUESS` → 正确 | 对手还有未翻牌 | GUESSING | 目标牌 isRevealed=true |
 | GUESSING | `GUESS` → 正确 | 所有对手全部翻开 | GAME_OVER | winner = 当前玩家 |
-| GUESSING | `GUESS` → 错误 | — | NEXT_TURN | 己牌翻开 |
-| GUESSING | `PASS` | — | NEXT_TURN | — |
+| GUESSING | `GUESS` → 错误 | — | NEXT_TURN | 己摸牌 isRevealed=true |
+| GUESSING | `PASS` | — | NEXT_TURN | 等同猜错：己摸牌 isRevealed=true |
 | NEXT_TURN | — | 所有对手全翻开 | GAME_OVER | winner = 当前玩家 |
 | NEXT_TURN | — | 否则 | WAITING | turnIndex = (turnIndex+1) % N |
 
@@ -306,22 +306,25 @@ allOpponentsEliminated(player, gameState) =
 ### 5.1 摸牌
 
 ```
-DRAW_TILE(gameState):
+DRAW_TILE(gameState, color):
   Assert: caller === turnOrder[turnIndex] ∧ phase === 'drawing'
+  // color ∈ { BLACK, WHITE } — 玩家选择摸哪种颜色的牌
 
-  if |pool| === 0:
-    drawnTileId = null
-    phase = 'guessing'
-    return { drawnTile: null, poolRemaining: 0 }
+  subPool = pool[color]
+  if |subPool| === 0:
+    return { drawnTile: null, empty: true }  // 该颜色池空
 
-  tile = pool.pop()
+  idx = random(0, |subPool| - 1)
+  tile = subPool.splice(idx, 1)[0]
   hands[caller].push(tile)
   tile.position = |hands[caller]| - 1
   drawnTileId = tile.id
   phase = 'inserting'
-  turnLog.push({ turnNumber, playerOpenid: caller, action: 'draw' })
+  turnLog.push({ turnNumber, playerOpenid: caller, action: 'draw', color })
 
-  return { drawnTile: sanitize(tile), poolRemaining: |pool| }
+  return { drawnTile: sanitize(tile), poolRemaining: { black: |pool.black|, white: |pool.white| } }
+
+// 若两池皆空 → drawnTileId=null, phase→guessing (跳过插入)
 ```
 
 ### 5.2 插入
@@ -379,7 +382,8 @@ getGameState(gameId, callerOpenid) → {
 |------|:---:|:---:|
 | 自己手牌（颜色/数字/Joker） | ✅ | ❌（仅已翻开） |
 | 对手已翻牌（颜色+数字） | ✅ | ✅ |
-| 对手未翻牌（颜色） | ✅ | ✅（牌背可见） |
+| 对手未翻牌（颜色） | ✅ | ✅（牌背有色） |
+| 对手未翻牌（数字/Joker） | ❌ | ✅（仅自己） |
 | 牌池具体牌 | ❌ | ❌ |
 | 牌池剩余数量 | ✅ | ✅ |
 | 完整 turnLog | ✅（仅自己操作） | ❌（仅摘要） |

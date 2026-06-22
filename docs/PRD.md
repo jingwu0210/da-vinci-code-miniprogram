@@ -269,7 +269,7 @@ WAITING ──→ DRAWING ──→ INSERTING ──→ GUESSING
 
 ```
   🏠 大厅    第 3 回合    ⏏ 退出
-  剩 8 张  │  🕐 00:25
+  🕐 00:25
 
   ┌─ 玩家B（对手）──────┐
   │  [?] [?] [5·白] [?] │   ← 对手暗牌 / 已翻开牌
@@ -503,7 +503,7 @@ WAITING ──→ DRAWING ──→ INSERTING ──→ GUESSING
 ### `game` 核心契约
 
 - **`initGame`**：创建 26 张牌 → 洗牌 → 发牌 → 每人排序 → 写入 games
-- **`drawTile`**：校验回合/阶段/牌池非空 → 返回摸到的牌
+- **`drawTile`**：校验回合/阶段+颜色池非空 → 返回摸到的牌（玩家选择黑/白）
 - **`insertTile`**：校验合法位置 → 插入手牌序列 → 进入 guessing 阶段
 - **`makeGuess`**：校验目标+数字（牌背底色可见，无需猜色；Joker 猜值=-1）→ 猜对翻开/猜错亮己 → 检查胜负
 - **`aiMove`**：根据 difficulty 执行完整 AI 回合
@@ -517,7 +517,7 @@ WAITING ──→ DRAWING ──→ INSERTING ──→ GUESSING
 
 ```
 board 页面
-├── game-info          # 回合/计时器/牌池剩余
+├── game-info          # 回合/计时器
 ├── opponent-hand ×N   # 对手手牌（暗牌+已翻开）
 │   └── game-tile ×M   # 单张牌（正面/背面/选中）
 ├── player-hand        # 自己手牌（明牌+插入槽）

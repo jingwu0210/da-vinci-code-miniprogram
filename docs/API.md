@@ -32,7 +32,6 @@ const res = await wx.cloud.callFunction({
     gameId: 'abc123',
     targetOpenid: 'oxxx',
     position: 1,
-    
     value: 5
   }
 })
@@ -372,20 +371,22 @@ type: 'getGameState'
 
 ### 4.3 drawTile
 
-摸牌。
+摸牌。玩家选择摸黑色或白色。
 
 ```
 type: 'drawTile'
 
 ■ 入参:
 {
-  gameId: String
+  gameId: String,
+  color:  'black' | 'white'         // 选择摸哪种颜色的牌
 }
 
 ■ 出参 (success):
 {
-  drawnTile:     SelfTile | null,   // null = 牌池已空
-  poolRemaining: Integer
+  drawnTile:     SelfTile | null,   // null = 该颜色池空
+  poolRemaining: { black: Integer, white: Integer, total: Integer },
+  empty?:        Boolean            // 该颜色池空时为 true
 }
 
 ■ 错误:
@@ -476,7 +477,7 @@ type: 'makeGuess'
 
 ### 4.6 passTurn
 
-结束猜测阶段，交给下一位玩家。
+结束猜测阶段。**pass = 猜错处理 —— 当前玩家摸的牌会被翻开 (isRevealed=true)**。
 
 ```
 type: 'passTurn'
@@ -489,7 +490,8 @@ type: 'passTurn'
 ■ 出参 (success):
 {
   nextTurnOpenid: String,
-  nextPhase: 'waiting'
+  nextPhase: 'waiting',
+  revealedTile:  SelfTile | null    // 被翻开的自己摸的牌
 }
 
 ■ 错误:

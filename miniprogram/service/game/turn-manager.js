@@ -6,14 +6,24 @@
 const { Phase } = require('../../common/enums');
 
 /**
+ * pass 事件等同于猜错——摸到的牌会被翻开。
+ */
+const PASS_REVEALS_TILE = true;
+
+/**
  * 获取给定阶段的下一阶段（无副作用，纯判定）。
+ * pass 的 nextPhase 为 WAITING（等同猜错），调用方需自行处理 isRevealed 副作用。
  */
 function nextPhase(currentPhase, event) {
   const transitions = {
-    [Phase.DRAWING]:   { draw_tile: Phase.INSERTING, skip_draw: Phase.GUESSING },
+    [Phase.DRAWING]:   { draw: Phase.INSERTING, skip: Phase.GUESSING },
     [Phase.INSERTING]: { insert: Phase.GUESSING },
-    [Phase.GUESSING]:  { guess_correct: Phase.GUESSING, guess_wrong: Phase.WAITING, pass: Phase.WAITING },
-    [Phase.WAITING]:   { begin_turn: Phase.DRAWING },
+    [Phase.GUESSING]:  {
+      correct: Phase.GUESSING,
+      wrong:   Phase.WAITING,
+      pass:    Phase.WAITING,     // ← pass = wrong
+    },
+    [Phase.WAITING]:   { begin: Phase.DRAWING },
   };
 
   const phaseTransitions = transitions[currentPhase];
@@ -28,4 +38,12 @@ function isMyActionPhase(phase) {
   return phase !== Phase.WAITING;
 }
 
-module.exports = { nextPhase, isMyActionPhase };
+/**
+ * 判断该事件是否导致当前回合结束（进入 WAITING 或 GAME_OVER）。
+ */
+function endsTurn(currentPhase, event) {
+  const next = nextPhase(currentPhase, event);
+  return next === Phase.WAITING;
+}
+
+module.exports = { nextPhase, isMyActionPhase, endsTurn, PASS_REVEALS_TILE };
