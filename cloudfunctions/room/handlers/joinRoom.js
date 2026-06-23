@@ -1,0 +1,28 @@
+/**
+ * joinRoom —— 校验并加入房间。
+ */
+module.exports = async function (event, caller, db) {
+  const { roomId, password = '' } = event;
+  if (!roomId) return { success: false, error: 'INVALID_PARAMS' };
+
+  try {
+    const res = await db.collection('rooms').where({ roomId: roomId.toUpperCase() }).get();
+    if (res.data.length === 0) return { success: false, error: 'ROOM_NOT_FOUND', errorCode: 'ROOM_NOT_FOUND' };
+
+    const room = res.data[0];
+    if (room.status === 'playing') return { success: false, error: 'ROOM_STARTED', errorCode: 'ROOM_STARTED' };
+    if (room.status === 'finished') return { success: false, error: 'ROOM_STARTED', errorCode: 'ROOM_STARTED' };
+    if (room.players.length >= room.maxPlayers) return { success: false, error: 'ROOM_FULL', errorCode: 'ROOM_FULL' };
+    if (room.password && room.password !== password) return { success: false, error: 'WRONG_PASSWORD', errorCode: 'WRONG_PASSWORD' };
+    if (room.players.some(p => p.openid === caller)) return { success: false, error: 'ALREADY_IN_ROOM', errorCode: 'ALREADY_IN_ROOM' };
+
+    room.players.push({ openid: caller, nickName: '', avatarUrl: '', isReady: false, isAI: false, seatIndex: room.players.length });
+    await db.collection('rooms').doc(room._id).update({
+      data: { players: room.players, updatedAt: db.serverDate() },
+    });
+
+    return { success: true, data: { room } };
+  } catch (e) {
+    return { success: false, error: e.message || 'JOIN_ROOM_FAILED' };
+  }
+};

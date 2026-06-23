@@ -5,7 +5,8 @@
     "view/pages/board/index",
     "view/pages/tutorial/index",
     "view/pages/history/index",
-    "view/pages/settings/index"
+    "view/pages/settings/index",
+    "view/pages/agreement/index"
   ],
   "subpackages": [
     {

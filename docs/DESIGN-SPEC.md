@@ -47,6 +47,20 @@ Color Profile: sRGB
 
 > 规则：登录页和游戏核心页保持毛毡沉浸感；其余功能页采用明亮主题，降低视觉疲劳。所有页面共用相同的色板 Token（牌面色不变），仅背景色切换。
 
+### 1.2 导航栏规范 ★
+
+系统导航栏由 `app.json` 统一配置：
+```
+"navigationBarBackgroundColor": "#2C3A4A",
+"navigationBarTitleText": "达芬奇密码",
+"navigationBarTextStyle": "white"
+```
+
+- **登录页** 使用 `navigationStyle: "custom"` 隐藏系统导航栏（全屏品牌页）
+- **其余所有页面** 使用系统默认导航栏，自带返回按钮和标题
+- **禁止** 在页面内重复创建自定义标题栏（如 "← 返回 达芬奇密码"），避免与系统导航栏重复
+- 若页面需额外操作（如设置 ⚙、退出登录），在系统导航栏下方以最小高度（48pt）放置功能按钮，不重复标题
+
 ---
 
 ## 2. 色彩系统 (Design Tokens)

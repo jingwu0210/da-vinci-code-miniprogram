@@ -6,7 +6,18 @@
       "mcp__plugin_cloudbase_cloudbase-mcp__auth",
       "mcp__plugin_cloudbase_cloudbase-mcp__writeNoSqlDatabaseStructure",
       "mcp__plugin_cloudbase_cloudbase-mcp__managePermissions",
-      "mcp__plugin_cloudbase_cloudbase-mcp__readNoSqlDatabaseStructure"
+      "mcp__plugin_cloudbase_cloudbase-mcp__readNoSqlDatabaseStructure",
+      "Bash(node tests/game-engine.test.js)",
+      "Bash(sed -i '' \"s|'/subpackages/room/|'/view/subpackages/room/|g\" routes.js)",
+      "Bash(sed -i '' \"s|'/subpackages/result/|'/view/subpackages/result/|g\" routes.js)",
+      "Bash(sed -i '' '1,24s/.*//' /Users/jingwu/WeChatProjects/da-vinci-code-miniprogram/miniprogram/view/pages/lobby/index.wxss)",
+      "Bash(sed -i '' '/^$/d' /Users/jingwu/WeChatProjects/da-vinci-code-miniprogram/miniprogram/view/pages/lobby/index.wxss)",
+      "Bash(sed -i '' '/const local = require/i\\\\ *)",
+      "Bash(sed -i '' \"/onClearCache/,/}\\);/s/}\\);/  onTapLogout\\(\\) {\\\\n    store.set\\('user', null\\);\\\\n    wx.redirectTo\\({ url: ROUTES.LOGIN }\\);\\\\n  },\\\\n}\\);/\" view/pages/settings/index.js)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "cloudbase-mcp",
+    "figma"
+  ]
 }

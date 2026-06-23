@@ -1,1 +1,32 @@
-<!-- subpackages/room/create -->
+<!-- 创建房间页 -->
+<view class="create-page">
+  <view class="main">
+    <text class="label">游戏模式</text>
+    <view class="mode-switch">
+      <view class="mode-btn {{mode==='ai'?'active':''}}" bindtap="onSwitchMode" data-mode="ai">🤖 人机</view>
+      <view class="mode-btn {{mode==='friends'?'active':''}}" bindtap="onSwitchMode" data-mode="friends">👥 好友联机</view>
+    </view>
+
+    <block wx:if="{{mode==='friends'}}">
+      <text class="label">玩家人数</text>
+      <view class="radio-group">
+        <view class="radio {{playerCount===2?'active':''}}" bindtap="onPlayerCount" data-n="2">2人</view>
+        <view class="radio {{playerCount===3?'active':''}}" bindtap="onPlayerCount" data-n="3">3人</view>
+        <view class="radio {{playerCount===4?'active':''}}" bindtap="onPlayerCount" data-n="4">4人</view>
+      </view>
+      <text class="label">房间密码 (可选)</text>
+      <input class="input" value="{{password}}" bindinput="onPasswordInput" placeholder="输入密码" maxlength="6" />
+    </block>
+
+    <block wx:if="{{mode==='ai'}}">
+      <text class="label">AI 难度</text>
+      <view class="radio-group">
+        <view class="radio {{difficulty==='easy'?'active':''}}" bindtap="onDifficulty" data-d="easy">简单</view>
+        <view class="radio {{difficulty==='medium'?'active':''}}" bindtap="onDifficulty" data-d="medium">中等</view>
+        <view class="radio {{difficulty==='hard'?'active':''}}" bindtap="onDifficulty" data-d="hard">困难</view>
+      </view>
+    </block>
+
+    <button class="btn-create" bindtap="onCreate">创建房间</button>
+  </view>
+</view>

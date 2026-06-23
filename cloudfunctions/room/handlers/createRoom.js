@@ -1,0 +1,40 @@
+/**
+ * createRoom —— 生成 6 位房间码 → 写入 rooms 集合。
+ */
+module.exports = async function (event, caller, db) {
+  const { mode, maxPlayers = 2, password = '', difficulty = null } = event;
+  if (!mode || !['ai', 'friends'].includes(mode)) return { success: false, error: 'INVALID_MODE', errorCode: 'INVALID_MODE' };
+  if (maxPlayers < 2 || maxPlayers > 4) return { success: false, error: 'INVALID_PLAYER_COUNT', errorCode: 'INVALID_PLAYER_COUNT' };
+
+  try {
+    // 生成唯一 6 位房间码
+    let roomId;
+    let exists = true;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    while (exists) {
+      roomId = '';
+      for (let i = 0; i < 6; i++) roomId += chars.charAt(Math.floor(Math.random() * chars.length));
+      const check = await db.collection('rooms').where({ roomId }).get();
+      exists = check.data.length > 0;
+    }
+
+    const room = {
+      roomId,
+      mode,
+      maxPlayers,
+      password,
+      difficulty,
+      creatorOpenid: caller,
+      status: 'waiting',
+      players: [{ openid: caller, nickName: '', avatarUrl: '', isReady: false, isAI: false, seatIndex: 0 }],
+      createdAt: db.serverDate(),
+      updatedAt: db.serverDate(),
+    };
+
+    await db.collection('rooms').add({ data: room });
+
+    return { success: true, data: { room } };
+  } catch (e) {
+    return { success: false, error: e.message || 'ROOM_CREATE_FAILED' };
+  }
+};

@@ -1,1 +1,25 @@
-<!-- pages/login -->
+<!-- 登录页 -->
+<view class="login-page">
+  <view class="brand">
+    <view class="brand-title">达芬奇密码</view>
+    <view class="brand-sub">DA VINCI CODE</view>
+  </view>
+  <view wx:if="{{!loggedIn}}" class="login-actions">
+    <button class="btn-login" bindtap="onTapLogin" loading="{{loading}}">微信一键登录</button>
+    <view class="btn-guest" bindtap="onTapGuest">游客模式</view>
+  </view>
+  <view wx:if="{{loggedIn}}" class="profile-setup">
+    <view class="avatar-wrapper">
+      <image class="profile-avatar" src="{{avatarUrl}}" mode="aspectFill" />
+      <button class="avatar-trigger" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"></button>
+    </view>
+    <view class="avatar-label">点击设置头像</view>
+    <input class="input-nickname" type="nickname" placeholder="点击输入昵称" value="{{nickName}}" bindinput="onNicknameInput" />
+    <button class="btn-start" bindtap="onConfirmProfile">进入游戏</button>
+  </view>
+  <view class="agreement">
+    登录即表示同意\n
+    <text class="link" bindtap="onTapAgreement">《用户协议》</text>
+    <text class="link" bindtap="onTapPrivacy">《隐私政策》</text>
+  </view>
+</view>

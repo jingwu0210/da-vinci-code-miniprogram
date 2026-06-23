@@ -26,6 +26,10 @@ page {
   flex-direction: column;
   justify-content: flex-start;
   font-family: 'PingFang SC', -apple-system, sans-serif;
+  overflow-x: hidden;
+  width: 100vw;
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 
 /* 毛毡背景页（登录+Board）—— 默认 */

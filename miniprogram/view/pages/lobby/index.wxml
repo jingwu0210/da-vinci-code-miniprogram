@@ -1,1 +1,46 @@
-<!-- pages/lobby -->
+<!-- 大厅页 -->
+<view class="lobby-page">
+  <scroll-view class="main" scroll-y>
+    <view class="user-card" bindtap="onTapSettings">
+      <image class="avatar-img" src="{{user.avatarUrl}}" mode="aspectFill" wx:if="{{user.avatarUrl}}"/>
+      <view class="avatar" wx:else>👤</view>
+      <view class="user-info">
+        <view class="nick">{{user.nickName || '玩家A'}}</view>
+        <view class="stats" wx:if="{{user.stats}}">胜 {{user.stats.wins}} · 负 {{user.stats.losses}} · 胜率 {{winRate}}%</view>
+      </view>
+      <text class="card-arrow">›</text>
+    </view>
+
+    <view class="menu-section">
+      <view class="menu-card" bindtap="onTapAiMode">
+        <view class="menu-left"><text class="menu-icon">🤖</text><view><view class="menu-title">单机人机</view><view class="menu-desc">与 AI 对战，磨练推理技巧</view></view></view>
+        <text class="menu-arrow">→</text>
+      </view>
+      <view class="menu-card" bindtap="onTapFriendsMode">
+        <view class="menu-left"><text class="menu-icon">👥</text><view><view class="menu-title">好友联机</view><view class="menu-desc">创建房间，邀请好友对战</view></view></view>
+        <text class="menu-arrow">→</text>
+      </view>
+    </view>
+
+    <view class="quick-actions">
+      <button class="btn-quick" bindtap="onTapCreate">创建房间</button>
+      <button class="btn-quick-secondary" bindtap="onTapJoin">加入房间</button>
+    </view>
+  </scroll-view>
+
+  <view class="bottom-bar">
+    <text class="tab" bindtap="onTapTutorial">📖 玩法说明</text>
+    <text class="tab" bindtap="onTapHistory">📋 历史对局</text>
+  </view>
+
+  <!-- 加入房间弹窗 -->
+  <view class="modal-mask" wx:if="{{showJoinModal}}" bindtap="onCancelJoin"></view>
+  <view class="modal-panel" wx:if="{{showJoinModal}}">
+    <text class="modal-title">输入房间码</text>
+    <input class="modal-input" value="{{roomCode}}" bindinput="onRoomCodeInput" placeholder="6 位房间码" maxlength="6" focus="{{showJoinModal}}" />
+    <view class="modal-btns">
+      <button class="modal-cancel" bindtap="onCancelJoin">取消</button>
+      <button class="modal-confirm" bindtap="onConfirmJoin">加入</button>
+    </view>
+  </view>
+</view>

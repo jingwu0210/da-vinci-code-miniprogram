@@ -1,0 +1,10 @@
+.agreement-page {
+  background: #2C3A4A;
+  min-height: 100vh;
+  padding: 32rpx;
+  color: #EBEBE5;
+}
+.title { font-size: 40rpx; font-weight: 500; margin-bottom: 48rpx; color: #9E8C6C; text-align: center; }
+.section { margin-bottom: 32rpx; }
+.h2 { font-size: 28rpx; font-weight: 500; margin-bottom: 12rpx; }
+.text { font-size: 26rpx; line-height: 1.8; color: #8A8A90; }

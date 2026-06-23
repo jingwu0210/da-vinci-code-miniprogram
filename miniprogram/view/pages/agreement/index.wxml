@@ -1,0 +1,42 @@
+<!-- 用户协议 / 隐私政策 -->
+<view class="agreement-page">
+  <view class="content" wx:if="{{type === 'user_agreement'}}">
+    <view class="title">用户协议</view>
+    <view class="section">
+      <view class="h2">1. 服务说明</view>
+      <view class="text">达芬奇密码（以下简称"本小程序"）是一款在线桌游推理游戏。用户通过微信授权登录后可使用单机人机对战及好友联机对战功能。</view>
+    </view>
+    <view class="section">
+      <view class="h2">2. 用户信息</view>
+      <view class="text">本小程序仅收集您的微信公开信息（头像、昵称）用于游戏内展示。用户可选择游客模式，不提供任何个人信息即可体验单机模式。我们不会收集您的手机号、地理位置等敏感信息。</view>
+    </view>
+    <view class="section">
+      <view class="h2">3. 使用规则</view>
+      <view class="text">用户应遵守游戏规则，不得使用外挂、脚本等作弊手段。我们保留对违规用户限制服务的权利。</view>
+    </view>
+    <view class="section">
+      <view class="h2">4. 免责声明</view>
+      <view class="text">本小程序仅供娱乐，不对因服务器维护、网络故障等原因导致的服务中断承担责任。</view>
+    </view>
+  </view>
+
+  <view class="content" wx:if="{{type === 'privacy'}}">
+    <view class="title">隐私政策</view>
+    <view class="section">
+      <view class="h2">1. 信息收集</view>
+      <view class="text">您使用微信授权登录时，我们会获取您的微信头像和昵称，仅用于游戏内身份展示。您也可以选择游客模式，不提供任何个人信息。</view>
+    </view>
+    <view class="section">
+      <view class="h2">2. 信息存储</view>
+      <view class="text">您的个人信息存储于腾讯云 CloudBase 安全环境中，遵循微信云开发的数据安全规范。</view>
+    </view>
+    <view class="section">
+      <view class="h2">3. 信息使用</view>
+      <view class="text">您的信息仅用于游戏对战（显示玩家身份）和历史对局记录，不会用于任何商业用途，不会分享给第三方。</view>
+    </view>
+    <view class="section">
+      <view class="h2">4. 联系我们</view>
+      <view class="text">如对隐私政策有疑问，请联系开发者。</view>
+    </view>
+  </view>
+</view>

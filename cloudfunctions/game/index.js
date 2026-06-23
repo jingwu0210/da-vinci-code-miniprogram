@@ -7,7 +7,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 exports.main = async (event, context) => {
-  const caller = cloud.getWXContext().OPENID;
+  const caller = event.callerOpenid || cloud.getWXContext().OPENID;
   if (!caller) {
     return { success: false, error: 'NOT_AUTHORIZED', errorCode: 'NOT_AUTHORIZED' };
   }

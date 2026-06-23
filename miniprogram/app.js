@@ -2,9 +2,6 @@
 App({
   onLaunch: function () {
     this.globalData = {
-      // env 参数说明：
-      // env 参数决定接下来小程序发起的云开发调用（wx.cloud.xxx）会请求到哪个云环境的资源
-      // 此处请填入环境 ID, 环境 ID 可在微信开发者工具右上顶部工具栏点击云开发按钮打开获取
       env: "testenv001-d7gtpfjahfa6ab5f6",
     };
     if (!wx.cloud) {
@@ -13,6 +10,15 @@ App({
       wx.cloud.init({
         env: this.globalData.env,
         traceUser: true,
+      });
+      // 建立用户身份（wx.cloud.init 的 traceUser 在某些情况下不够）
+      wx.login({
+        success: (res) => {
+          console.log('[App] wx.login success, code:', res.code ? 'ok' : 'fail');
+        },
+        fail: (err) => {
+          console.warn('[App] wx.login failed:', err);
+        },
       });
     }
   },

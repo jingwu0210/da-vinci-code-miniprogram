@@ -1,71 +1,67 @@
 /**
  * 房间等待室。
- * 依赖: service/room/room-manager, common/routes, common/modal-helper, model/store/app-store
  */
-
 const RoomManager = require('../../../../service/room/room-manager');
 const { ROUTES, buildRoute } = require('../../../../common/routes');
 const { showToast, showConfirm } = require('../../../../common/modal-helper');
 const store = require('../../../../common/store');
 
 Page({
-  data: {
-    room: null,
-  },
-
-  _roomId: null,
-  _watcher: null,
+  data: { room: null, isReady: false, isCreator: false, canStart: false },
+  _roomId: null, _watcher: null,
 
   async onLoad(options) {
     this._roomId = options.roomId;
     try {
       const room = await RoomManager.joinRoom(this._roomId);
-      this.setData({ room });
+      const myOpenid = store.get('user')?.openid;
+      this.setData({
+        room, isCreator: room.creatorOpenid === myOpenid,
+        isReady: room.players.find(p => p.openid === myOpenid)?.isReady || false,
+        canStart: this._checkCanStart(room),
+      });
       store.set('currentRoom', room);
 
-      // 订阅实时更新
       this._watcher = RoomManager.subscribe(this._roomId, (doc) => {
-        this.setData({ room: doc });
+        this.setData({ room: doc, canStart: this._checkCanStart(doc) });
         if (doc.status === 'playing') {
           wx.redirectTo({ url: buildRoute(ROUTES.BOARD, { roomId: doc.roomId }) });
         }
       });
-    } catch (e) {
-      showToast(e.message || '加入房间失败');
-    }
+    } catch (e) { showToast(e.message || '加入房间失败'); }
   },
 
-  onUnload() {
-    if (this._watcher) this._watcher.close();
-  },
+  onUnload() { if (this._watcher) this._watcher.close(); },
 
   async onToggleReady() {
-    const isReady = !(this.data.room.players.find(p => !p.isAI)?.isReady);
     try {
-      await RoomManager.toggleReady(this._roomId, !isReady);
-    } catch (e) {
-      showToast(e.message);
-    }
+      await RoomManager.toggleReady(this._roomId, !this.data.isReady);
+    } catch (e) { showToast(e.message); }
   },
 
   async onStartGame() {
     try {
-      const result = await RoomManager.startGame(this._roomId);
-      // watch 回调会触发跳转
-    } catch (e) {
-      showToast(e.message);
-    }
+      await RoomManager.startGame(this._roomId);
+    } catch (e) { showToast(e.message); }
   },
 
-  async onLeaveRoom() {
+  async onLeave() {
     const ok = await showConfirm('离开房间', '确定离开当前房间？');
-    if (ok) {
-      await RoomManager.leaveRoom(this._roomId);
-      wx.navigateBack();
-    }
+    if (ok) { await RoomManager.leaveRoom(this._roomId); wx.navigateBack(); }
   },
+
+  onCopy() {
+    wx.setClipboardData({ data: this.data.room.roomId, success: () => showToast('已复制') });
+  },
+
 
   onShareAppMessage() {
     return RoomManager.getShareConfig(this._roomId);
+  },
+
+  _checkCanStart(room) {
+    const humans = room.players.filter(p => !p.isAI);
+    const allReady = humans.every(p => p.isReady);
+    return allReady && humans.length >= 2;
   },
 });

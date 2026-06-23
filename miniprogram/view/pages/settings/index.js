@@ -7,6 +7,8 @@ const settingsCache = require('../../../common/settings-cache');
 const store = require('../../../common/store');
 const AuthService = require('../../../service/auth/auth-service');
 const { showToast, showConfirm } = require('../../../common/modal-helper');
+const { ROUTES } = require('../../../common/routes');
+const store = require('../../../common/store');
 const local = require('../../../utils/local-storage');
 
 Page({
@@ -57,5 +59,9 @@ Page({
       settingsCache.save(settingsCache.DEFAULT_SETTINGS);
       showToast('缓存已清除');
     }
+  },
+  onTapLogout() {
+    store.set('user', null);
+    wx.redirectTo({ url: ROUTES.LOGIN });
   },
 });
