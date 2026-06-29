@@ -437,16 +437,16 @@ getGameState(gameId, callerOpenid) → {
 
 ## 7. AI 决策算法
 
-> ⚠️ **待持续优化**: 概率矩阵未跨回合持久化（当前每轮重新计算）；`shouldContinue` 信心评估未利用概率矩阵历史。
+> ⚠️ **待持续优化**: 概率矩阵未跨回合持久化（当前每轮重新计算）。
 >
-> **架构**: Medium/Hard 共享 `ai-common.evaluatePositions()`（seen表+否定+sortKey+空间约束+Joker推理）、`pickFallback()`（position感知兜底）、`shouldContinueWithProbs()`。各策略仅保留差异化逻辑：Medium=评分选best，Hard=概率矩阵+中位加权+argmax。否定追踪已升级为 **tile ID 绑定**（`makeGuess` 记录 `targetTileId`），位置偏移不再影响否定有效性。
+> **架构**: Medium/Hard 共享 `ai-common.evaluatePositions()`（seen表+否定+sortKey+空间约束+Joker推理）、`pickFallback()`（position感知兜底）。各策略仅保留差异化逻辑：Medium=评分选best，Hard=概率矩阵+中位加权+argmax。否定追踪为 **tile ID 绑定**（`makeGuess` 记录 `targetTileId`），位置偏移不受影响。
 
 ### 7.1 难度概览
 
 ```
 EASY:   纯随机
 MEDIUM: sortKey 上下界 + (value,color) 精确排除 + 否定信息 + 空间约束
-HARD:   MEDIUM 全部逻辑 + 概率矩阵 P[opp][pos][val] + argmax 置信度
+HARD:   MEDIUM 全部逻辑 + 概率矩阵 + 中位加权(含位置偏置) + argmax
 ```
 
 ### 7.2 策略对比总表
@@ -455,53 +455,77 @@ HARD:   MEDIUM 全部逻辑 + 概率矩阵 P[opp][pos][val] + argmax 置信度
 
 | | Easy | Medium | Hard |
 |---|------|--------|------|
-| 策略 | 有牌随机选 | 对手暗牌多的颜色优先（信息驱动） | **同 Medium** |
-| 动机 | 无脑 | 摸最不了解的颜色 | 同 Medium |
+| 策略 | 有牌随机选 | 对手暗牌多的颜色优先 | 阶段感知: 早期(对手翻牌<40%)=Score=己方×2+对手暗牌数→建立信息垄断; 中后期=同Medium |
+
+#### Joker 插入 `pickInsert` (Hard only)
+
+| 位置特征 | 评分 |
+|------|:---:|
+| 挨着已翻牌 | **+3** |
+| 左右有间隙(差值>2) | +1 |
+| 默认 | 1 |
+| 两端(pos=0或末尾) | -2 |
+| 夹在同色相邻数字间(5b和6b) | -2 |
 
 #### 如何猜测 `pickGuess`
 
+**共享推理链** (`ai-common.evaluatePositions`):
+
+1. **seen[value][color]** 精确表 — AI 手牌所有牌 + 已翻牌 → 按 (value,color) 精确标记
+2. **否定信息** — tile ID 绑定 + 旧 position 格式兼容。对手猜测推断降权: 非绝对 mark，改为 `inferred` 计数 → penalty = min(0.3×count, 0.9)
+3. **sortKey 上下界** — 每个未翻牌位找左右最近已翻非Joker牌的 sortKey 边界
+4. **空间约束** — nLeft/nRight 计数 + unseenJ 边界缓冲（minVal/maxVal）。过滤时**每个相邻空位独立计算合法值范围并取并集**，阈值用 **该色 unseenJ 缓冲**：`above >= max(0, nRight - unseenJ_color)`
+5. **Joker 推理** — 两条路径：
+   - **必然 Joker**: `possible=[]` + 该色Joker未见 + tile未否定 → `possible=[-1]`
+   - **随机 Joker**: `possible>0` + aiWrongJoker===0 → 动态概率 `unseenJ/(unrevTotal+2)`
+6. **兜底 fallback** — 三级级联放宽（bothSeen 永不放松，只放宽 oneSeen）：pass1 strict → pass2 放宽bothSeen → pass3 放宽oneSeen → 退化全局bothSeen排除
+
 | 维度 | Easy | Medium | Hard |
 |------|------|--------|------|
-| seen 表 | — | `seen[value][color]` 双色精确标记 | **同 Medium** |
-| 否定信息 | — | 历史猜错排除 + 对手猜测推断；仅在对手手牌未变动时生效 | **同 Medium** |
-| sortKey 上下界 | — | 左右已翻非Joker牌的 sortKey 边界 | **同 Medium** |
-| 空间约束 | — | nLeft/nRight 空位 + unseenJoker 缓冲 + 候选值上下方可用数过滤 | **同 Medium** |
-| Joker | 10% 猜 -1 | 无数可选+该色Joker未见+未否定 → 必然Joker；否则 10% 随机（含否定检查） | **同 Medium** |
-| 选目标 | 随机 | 优先有否定信息的位置；其次候选数最少；跳过空候选 | **同 Medium** → 构建 P → argmax(P) |
-| 额外层 | — | — | 候选值均分概率 → argmax 选最高置信度 |
-| 兜底 | — | position 感知 fallback（sortKey + bothSeen） | **同 Medium** |
+| seen 表 | — | `seen[value][color]` | 同 Medium |
+| 否定+推断 | — | tile ID 绑定 + inferred 惩罚 | 同 Medium |
+| 空间约束 | — | 空位独立并集 + 该色 unseenJ 缓冲 | 同 Medium |
+| Joker | 3% 猜 -1 | 必然Joker + 随机(动态概率) | 同 Medium |
+| 选目标 | 随机 | 优先否定位置，其次候选数最少 | 同 Medium → P矩阵 → argmax |
+| 中位加权 | — | — | rangeMid + 位置偏置(nLeft-nRight) |
+| 兜底 | — | position 感知 + bothSeen 永不放宽 | 同 Medium |
 
 ```
 Hard pickGuess 流程:
-  ①~④ 完全同 Medium (seen表 → 否定信息 → sortKey上下界 → 空间约束 → Joker推理)
-  ⑤ 候选值均分概率: P[opp][pos][v] = 1 / |possible|
-  ⑥ argmax(P) 选全局最高置信度的 (opp, pos, val)
-  ⑦ 兜底: position 感知 fallback
+  ①~⑤ 完全同 Medium (seen表 → 否定 → sortKey → 空间约束 → Joker)
+  ⑥ 候选值加权: Joker=unseenJ/(oppUnrev+1), 数字=1/(1+|v-rangeMid|)
+  ⑦ argmax(P) 选最高置信度
+  ⑧ 兜底: position 感知 fallback
 ```
 
 #### 猜对后是否继续 `shouldContinue`
 
-基于 `estimateConfidence(tiles, aiPlayer)` 扫描所有未翻牌位，返回最佳位置的候选数 `minCount`（1=100%确定）和对手暗牌总数 `totalUnrev`。
+基于 `estimateConfidence(tiles, aiPlayer)` — 扫描对手所有未翻牌位，对每位置用 sortKey 约束计数候选值，返回最佳 `minCount` 和总暗牌 `totalUnrev`。
 
 | 条件 | Easy | Medium | Hard |
 |------|:---:|:------:|:---:|
-| minCount = 1（某位置 100% 确定） | — | **100% 必猜** | **100% 必猜** |
-| totalUnrev ≤ 2（终局冲胜） | — | **100%** | **100%** |
-| minCount = 2（2 选 1） | — | **90%** | 80% |
-| minCount = 3（3 选 1） | — | **80%** | 65% |
-| minCount ≥ 4（低置信度） | — | **65%** | 50% |
+| minCount = 1 | — | 100% | 100% |
+| totalUnrev ≤ 2 | — | 100% | 100% |
+| minCount = 2 | — | **70%** | **55%** |
+| minCount = 3 | — | **50%** | **35%** |
+| minCount ≥ 4 | — | **30%** | **20%** |
 | 随机基线 | 30% | — | — |
 | 连猜上限 | **无** | **无** | **无** |
 
-**设计原理**: Hard 比 Medium **更谨慎**。专家 AI 更懂风险控制——猜错会亮己牌，所以在不确定时见好就收；Medium 模拟普通人类玩家，猜对后容易"上头"继续猜。两者在终局（≤2 暗牌）和 100% 确定时都全力冲刺。
+**影响因子**:
 
-> ⚠️ **待持续优化**: 当前 `estimateConfidence` 每轮独立计算，未利用 Hard 的概率矩阵历史。理想情况应跨回合持久化各位置的置信度，使 `shouldContinue` 在 Hard 中有更精准的依据。
+| 因子 | 效果 | 适用 |
+|------|:---:|:---:|
+| 池空（无亮牌代价） | **×1.5** | Medium + Hard |
+| 摸到 Joker | **×0.6** | Hard only |
+
+**设计原理**: Hard 比 Medium 更谨慎。两者在终局和 100% 确定时全力冲刺。池空时无代价更激进，Joker 在手时更保守。
 
 ### 7.3 EASY — 纯随机
 
 ```
 pickColor(pool): 随机选有牌的颜色
-pickGuess(gs, aiPlayer): 随机目标 + 随机位置 + 随机值(10% Joker)
+pickGuess(gs, aiPlayer): 随机目标 + 随机位置 + 随机值(3% Joker)
 shouldContinue: 30% 概率继续，无上限
 ```
 
@@ -512,27 +536,33 @@ pickColor(pool, gs, aiPlayer):
   统计对手未翻牌中各色数量 → 优先摸暗牌多的颜色
 
 pickGuess(gs, aiPlayer):
-  ① seen[value][color] 精确排除 (自己的牌 + 已翻牌)
-  ② 否定信息收集 (历史猜错 + 对手猜测推断)，仅在对手手牌未变动时生效
-  ③ 每位置: sortKey 上下界 + nLeft/nRight 空间约束 + Joker 推理
-  ④ 优先有否定信息的位置，其次候选数最少
-  ⑤ 兜底: position 感知 fallback (sortKey 约束 + bothSeen)
+  委托给 C.evaluatePositions()
+  选目标: score = possible.length - hasNeg + inferredPenalty → 最小 score 优先
+  兜底: C.pickFallback()
 
-shouldContinue: 基于 estimateConfidence，比 Hard 更激进（90%/80%/65%）
+shouldContinue: 基于 estimateConfidence + 池空因子 (70%/50%/30%)
+
+pickInsert: 无 (随机)
 ```
 
-### 7.5 HARD — Medium 全部逻辑 + 概率矩阵
+### 7.5 HARD — Medium 全部逻辑 + 概率矩阵 + 阶段感知
 
 ```
-pickColor: 同 Medium
+pickColor(pool, gs, aiPlayer):
+  早期(对手翻牌<40%): Score = 己方持有数×2 + 对手暗牌数 → 选高分色
+  中后期: 对手暗牌多的颜色优先 (同 Medium)
+
+pickInsert(handWithout, joker):
+  评分每个位置: 挨已翻牌+3, 间隙+1, 两端-2, 相邻数字间-2 → 选最高分
 
 pickGuess(gs, aiPlayer):
-  ①~⑤ 完全同 Medium 推理 → 得到每位置候选值列表
-  ⑥ 候选值均分概率 → P[opp][pos][val] = 1/|possible|
-  ⑦ argmax(P) 选全局最高置信度
+  委托给 C.evaluatePositions()
+  概率矩阵: 中位加权(rangeMid + nLeft-nRight偏置) + inferred惩罚
+  Joker 权重 = unseenJ/(对手暗牌+1)
+  argmax(P) 选最高置信度
+  兜底: C.pickFallback()
 
-shouldContinue: 基于 estimateConfidence，比 Medium 更谨慎（80%/65%/50%）
-                ⚠️ 未利用概率矩阵历史 (待优化)
+shouldContinue: 基于 estimateConfidence + 池空×1.5 + Joker×0.6 (55%/35%/20%)
 ```
 
 ---

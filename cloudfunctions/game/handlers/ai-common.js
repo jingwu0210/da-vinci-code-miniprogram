@@ -68,6 +68,8 @@ exports.evaluatePositions = function(gs, aiPlayer) {
 
   // ── 否定信息 (tile ID 追踪 + 旧格式兼容) ──
   var negated = {};
+  var inferred = {};  // 对手猜测推断计数: key="value_color" → count
+  var aiWrongJoker = 0;  // AI 猜错 Joker 的次数
   (gs.turnLog || []).forEach(function(log) {
     if (log.action === 'guess' && !log.isCorrect) {
       if (log.targetTileId) {
@@ -80,13 +82,30 @@ exports.evaluatePositions = function(gs, aiPlayer) {
         }
       }
     }
-    // 对手猜测推断: 对手猜我的牌 → 对手没有该 (value,color)
+    // 对手猜测推断: 对手猜我的牌 → 对手可能没有该 (value,color)
+    // 仅当同一 (value,color) 被猜 ≥2 次时才采信（单次可能是随机/bluff）
     if (log.action === 'guess' && log.playerOpenid !== aiPlayer && log.targetColor) {
-      mark(log.guessedValue, log.targetColor);
+      var ik = log.guessedValue + '_' + log.targetColor;
+      inferred[ik] = (inferred[ik] || 0) + 1;
+    }
+    // 统计 AI 自己猜错 Joker 的次数
+    if (log.action === 'guess' && log.playerOpenid === aiPlayer && !log.isCorrect && log.guessedValue === -1) {
+      aiWrongJoker++;
     }
   });
 
+  // DEBUG: 打印 seen 表 + 推断计数
+  var seenDump = [];
+  for (var sv = -1; sv <= 11; sv++) {
+    if (seen[sv]) { seenDump.push(sv + ':' + (seen[sv].black?'B':'') + (seen[sv].white?'W':'')); }
+  }
+  console.log('[AI-EVAL] seen=' + JSON.stringify(seenDump));
+
   // ── 遍历对手所有未翻牌位 ──
+  // 预计算对手未翻牌总数（Joker 动态概率用）
+  var unrevTotal = 0;
+  opps.forEach(function(o) { exports.getHand(tiles, o).forEach(function(ht) { if (!ht.isRevealed) unrevTotal++; }); });
+
   var candidates = [];
   opps.forEach(function(opp) {
     var hand = exports.getHand(tiles, opp);
@@ -109,39 +128,77 @@ exports.evaluatePositions = function(gs, aiPlayer) {
       var maxVal = 11 - Math.max(0, nRight - unseenJ);
       var minVal = Math.max(0, nLeft - unseenJ);
 
+      console.log('[AI-EVAL] pos=' + t.position + ' tid=' + t.id + ' minV='+minVal+' maxV='+maxVal+' lk='+JSON.stringify(leftKey)+' rk='+JSON.stringify(rightKey));
+
       // 候选值收集
       var possible = [];
+      var excludedReasons = [];  // debug: 记录每个值被排除的原因
       for (var v=0; v<=11; v++) {
-        if (v < minVal || v > maxVal) continue;
-        if (bothSeen(v)) continue;
-        if (negated[t.id + '_' + v] || negated[opp + '_' + t.position + '_' + v]) continue;
+        if (v < minVal || v > maxVal) { excludedReasons.push(v+':range'); continue; }
+        if (bothSeen(v)) { excludedReasons.push(v+':bothSeen'); continue; }
+        if (negated[t.id + '_' + v]) { excludedReasons.push(v+':negTid'); continue; }
+        if (negated[opp + '_' + t.position + '_' + v]) { excludedReasons.push(v+':negPos'); continue; }
         if (!oneSeen(v, t.color)) {
           var sk = [v, t.color==='black'?0:1];
           var lOk = sk[0] > leftKey[0] || (sk[0]===leftKey[0] && sk[1] >= leftKey[1]);
           var rOk = sk[0] < rightKey[0] || (sk[0]===rightKey[0] && sk[1] <= rightKey[1]);
           if (lOk && rOk) possible.push(v);
-        }
+          else if (v===0) console.log('[AI-EVAL] v=0 FAIL sortKey lOk='+lOk+' rOk='+rOk+' sk='+JSON.stringify(sk)+' lk='+JSON.stringify(leftKey)+' rk='+JSON.stringify(rightKey));
+        } else if (v===0) console.log('[AI-EVAL] v=0 FAIL oneSeen');
       }
 
-      // 空间约束二次过滤
+      // 空间约束二次过滤: 每个相邻空位独立计算合法值范围，取并集
       var filtered = [];
       for (var pi = 0; pi < possible.length; pi++) {
         var pv = possible[pi];
         if (pv === -1) { filtered.push(pv); continue; }
-        var below = 0, above = 0;
-        for (var bv = 0; bv < pv; bv++) { if (!oneSeen(bv, t.color)) below++; }
-        for (var av = pv + 1; av <= 11; av++) { if (!oneSeen(av, t.color)) above++; }
-        if (below >= nLeft && above >= nRight) filtered.push(pv);
+        // 上方: 对每个右侧同色空位，按其自身 rightKey 收集可用值
+        var aboveSet = {};
+        for (var rp = i + 1; rp < hand.length; rp++) {
+          if (hand[rp].isRevealed || hand[rp].color !== t.color) continue;
+          var rpMax = 11;
+          for (var rk = rp + 1; rk < hand.length; rk++) {
+            if (hand[rk].isRevealed && !hand[rk].isJoker) {
+              rpMax = hand[rk].value - ((t.color==='black'?0:1) === (hand[rk].color==='black'?0:1) ? 1 : 0);
+              break;
+            }
+          }
+          for (var av = pv + 1; av <= rpMax; av++) { if (!oneSeen(av, t.color)) aboveSet[av] = true; }
+        }
+        var above = Object.keys(aboveSet).length;
+        // 下方: 对每个左侧同色空位，按其自身 leftKey 收集可用值
+        var belowSet = {};
+        for (var lp = 0; lp < i; lp++) {
+          if (hand[lp].isRevealed || hand[lp].color !== t.color) continue;
+          var lpMin = 0;
+          for (var lk = lp - 1; lk >= 0; lk--) {
+            if (hand[lk].isRevealed && !hand[lk].isJoker) {
+              lpMin = hand[lk].value + ((t.color==='black'?0:1) === (hand[lk].color==='black'?0:1) ? 1 : 0);
+              break;
+            }
+          }
+          for (var bv = lpMin; bv < pv; bv++) { if (!oneSeen(bv, t.color)) belowSet[bv] = true; }
+        }
+        var below = Object.keys(belowSet).length;
+        // 该色未见 Joker 可填一个空位 → 需要的数字值 = nLeft/nRight - 1
+        var unseenJCushion = 1 - (oneSeen(-1, t.color) ? 1 : 0);
+        if (below >= Math.max(0, nLeft - unseenJCushion) && above >= Math.max(0, nRight - unseenJCushion)) filtered.push(pv);
       }
       possible = filtered;
 
-      // Joker 推理
       var jokerNegated = negated[t.id + '_-1'] || negated[opp + '_' + t.position + '_-1'];
       var jokerColorSeen = oneSeen(-1, t.color);
       if (possible.length === 0 && !jokerColorSeen && !jokerNegated) { possible.push(-1); }
-      else if (possible.length > 0 && Math.random()<0.1 && !jokerColorSeen && !jokerNegated) possible.push(-1);
+      else if (possible.length > 0 && !jokerColorSeen && !jokerNegated && unseenJ > 0 && aiWrongJoker === 0) {
+        var jokerProb = unseenJ / (unrevTotal + 2);
+        if (Math.random() < jokerProb) possible.push(-1);
+      }
 
-      if (possible.length === 0) continue;
+      var summary = 'pos=' + t.position + ' color=' + t.color + ' leftKey=' + JSON.stringify(leftKey) + ' rightKey=' + JSON.stringify(rightKey) + ' nL=' + nLeft + ' nR=' + nRight + ' uJ=' + unseenJ + ' possible=' + JSON.stringify(possible);
+      if (possible.length === 0) {
+        console.log('[AI-EVAL] SKIP ' + summary + ' excluded=' + JSON.stringify(excludedReasons)); continue;
+      }
+      console.log('[AI-EVAL] ' + summary + ' excluded=' + JSON.stringify(excludedReasons));
 
       // 否定信息标记 (hasNeg 用于 Medium 评分)
       var hasNeg = false;
@@ -150,12 +207,18 @@ exports.evaluatePositions = function(gs, aiPlayer) {
       }
 
       candidates.push({ opp: opp, pos: t.position, tileId: t.id, tileColor: t.color,
-        leftKey: leftKey, rightKey: rightKey, possible: possible, hasNeg: hasNeg });
+        leftKey: leftKey, rightKey: rightKey, nLeft: nLeft, nRight: nRight, possible: possible, hasNeg: hasNeg });
     }
   });
 
   return { candidates: candidates, opps: opps, seen: seen, negated: negated,
-    bothSeen: bothSeen, oneSeen: oneSeen, mark: mark };
+    bothSeen: bothSeen, oneSeen: oneSeen, mark: mark, inferred: inferred };
+};
+
+/** 推断惩罚系数: count 次 → penalty ∈ [0, 0.9]，线性递增，封顶 0.9 */
+exports.inferredPenalty = function(count) {
+  if (!count) return 0;
+  return Math.min(0.3 * count, 0.9);
 };
 
 /**
@@ -175,22 +238,27 @@ exports.pickFallback = function(opps, tiles, seen, negated, bothSeen, oneSeen) {
   var fRight = [13,0];
   for (var fk=fi+1; fk<fhand.length; fk++) { if (fhand[fk].isRevealed && !fhand[fk].isJoker) { fRight = [fhand[fk].value, fhand[fk].color==='black'?0:1]; break; } }
 
+  // 逐级放宽约束，始终优先保留 sortKey 上下界；所有 pass 都检查否定
   var fav = [];
-  for (var fx=0; fx<=11; fx++) {
-    if (bothSeen(fx)) continue;
-    if (!oneSeen(fx, ft.color)) {
+  for (var pass = 1; pass <= 3; pass++) {
+    for (var fx=0; fx<=11; fx++) {
+      if (pass === 1 && bothSeen(fx)) continue;
+      if (pass <= 2 && oneSeen(fx, ft.color)) continue;
+      if (negated[ft.id + '_' + fx] || negated[fo + '_' + ft.position + '_' + fx]) continue;
       var fsk = [fx, ft.color==='black'?0:1];
       var flOk = fsk[0] > fLeft[0] || (fsk[0]===fLeft[0] && fsk[1] >= fLeft[1]);
       var frOk = fsk[0] < fRight[0] || (fsk[0]===fRight[0] && fsk[1] <= fRight[1]);
       if (flOk && frOk) fav.push(fx);
     }
+    if (fav.length) break;
   }
-  if (!fav.length) { for (var fx2=0; fx2<=11; fx2++) { if (!bothSeen(fx2)) fav.push(fx2); } }
+  // sortKey 级联全空 → 退化为全局 bothSeen 排除（也检查否定）
+  if (!fav.length) { for (var fx2=0; fx2<=11; fx2++) { if (!bothSeen(fx2) && !negated[ft.id + '_' + fx2] && !negated[fo + '_' + ft.position + '_' + fx2]) fav.push(fx2); } }
   if (!fav.length) fav.push(Math.floor(Math.random()*12));
   var fjSeen = oneSeen(-1, ft.color);
   var fjNeg = negated[ft.id + '_-1'] || negated[fo + '_' + ft.position + '_-1'];
   if (!fjSeen && !fjNeg) {
-    if (fav.length === 0 || Math.random() < 0.1) fav.push(-1);
+    if (fav.length === 0) fav.push(-1);
   }
   return { target: fo, position: ft.position, value: fav[Math.floor(Math.random()*fav.length)] };
 };

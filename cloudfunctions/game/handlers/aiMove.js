@@ -24,7 +24,8 @@ module.exports = async function(event, caller, db) {
     var hand = gs.tiles.filter(function(t) { return t.owner === aiPlayer; }).sort(function(a,b){return a.position-b.position;});
     var joker = hand.find(function(t) { return t.id === gs.drawnTileId; });
     if (joker) {
-      var pos = Math.floor(Math.random() * hand.length);
+      var handWithout = hand.filter(function(t) { return t.id !== gs.drawnTileId; });
+      var pos = strategy.pickInsert ? strategy.pickInsert(handWithout, joker) : Math.floor(Math.random() * hand.length);
       await require('./insertTile')({ gameId: gameId, position: pos }, aiPlayer, db);
       return { success: true, data: { actions: [{ action: 'insert', position: pos }] }};
     }

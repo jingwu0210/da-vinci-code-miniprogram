@@ -40,6 +40,28 @@ exports.pickColor = function(pool, gs, aiPlayer) {
   return unrev.black >= unrev.white ? 'black' : 'white';
 };
 
+// ── pickInsert: Joker 放置策略 ──
+// 不放两端、不夹相邻数字之间、优先挨着已翻牌
+exports.pickInsert = function(handWithout, drawnJoker) {
+  var bestPos = Math.floor(Math.random() * (handWithout.length + 1));
+  var bestScore = -Infinity;
+  for (var pos = 0; pos <= handWithout.length; pos++) {
+    var lt = pos > 0 ? handWithout[pos - 1] : null;
+    var rt = pos < handWithout.length ? handWithout[pos] : null;
+    var score = 1;
+    // 优先挨着已翻牌 (+3)
+    if ((lt && lt.isRevealed) || (rt && rt.isRevealed)) score += 3;
+    // 避免两端 (-2)
+    if (pos === 0 || pos === handWithout.length) score -= 2;
+    // 避免夹在相邻同色数字之间 (-2)
+    if (lt && rt && !lt.isJoker && !rt.isJoker && lt.color === rt.color && Math.abs(lt.value - rt.value) === 1) score -= 2;
+    // 偏好有间隙的位置 (+1)
+    if (lt && rt && !lt.isJoker && !rt.isJoker && lt.color === rt.color && Math.abs(lt.value - rt.value) > 2) score += 1;
+    if (score > bestScore) { bestScore = score; bestPos = pos; }
+  }
+  return bestPos;
+};
+
 // ── pickGuess: 共享推理 + 概率矩阵 + 中位加权 + argmax ──
 exports.pickGuess = function(gs, aiPlayer) {
   var eval = C.evaluatePositions(gs, aiPlayer);
@@ -52,11 +74,26 @@ exports.pickGuess = function(gs, aiPlayer) {
     if (!P[c.opp]) P[c.opp] = {};
     P[c.opp][c.pos] = {};
 
-    var rangeMid = (c.leftKey[0] + c.rightKey[0]) / 2;
+    // 中位向空位多的方向偏移：nLeft 多 → 值偏大（需留空间给左侧），nRight 多 → 值偏小
+    var bias = (c.nLeft || 0) - (c.nRight || 0);
+    var rangeMid = (c.leftKey[0] + c.rightKey[0] + bias) / 2;
     var weights = [];
     var totalWeight = 0;
+    // 对手暗牌总数（Joker 先验概率用）
+    var oppUnrev = 0;
+    C.getHand(gs.tiles, c.opp).forEach(function(ht) { if (!ht.isRevealed) oppUnrev++; });
+
     c.possible.forEach(function(pv) {
-      var w = pv === -1 ? 1.0 : 1.0 / (1.0 + Math.abs(pv - rangeMid));
+      var w;
+      if (pv === -1) {
+        // Joker 权重 = 未见 Joker 数 / (对手暗牌 + 1)，远低于数字值
+        w = (2 - ((eval.oneSeen(-1,'black')?1:0) + (eval.oneSeen(-1,'white')?1:0))) / (oppUnrev + 1);
+      } else {
+        w = 1.0 / (1.0 + Math.abs(pv - rangeMid));
+      }
+      // 推断惩罚: 对手猜过的 (value,color) 降低该值权重
+      var ik = pv + '_' + c.tileColor;
+      if (eval.inferred[ik]) w *= (1.0 - C.inferredPenalty(eval.inferred[ik]));
       weights.push(w);
       totalWeight += w;
     });
@@ -74,6 +111,7 @@ exports.pickGuess = function(gs, aiPlayer) {
         Object.keys(P[opp][pos] || {}).forEach(function(val) {
           if (P[opp][pos][val] > best.conf) {
             best = { conf: P[opp][pos][val], opp: opp, pos: parseInt(pos), val: parseInt(val) };
+              console.log('[AI-HARD] argmax update: opp=' + opp + ' pos=' + pos + ' val=' + val + ' conf=' + P[opp][pos][val].toFixed(3));
           }
         });
       });
@@ -86,5 +124,18 @@ exports.pickGuess = function(gs, aiPlayer) {
 
 // Hard: 比 Medium 更谨慎
 exports.shouldContinue = function(gs, aiPlayer, consecutiveCorrect) {
-  return C.shouldContinueWithProbs(gs, aiPlayer, consecutiveCorrect, 0.65, 0.50, 0.35);
+  var conf = C.estimateConfidence(gs.tiles, aiPlayer);
+  if (conf.minCount === 1) return true;       // 100% 确定 → 必猜
+  if (conf.totalUnrev <= 2) return true;      // 终局冲胜
+  // 摸到 Joker → 降低意愿 (×0.6)；池空 → 无亮牌代价 (×1.5)
+  var hasJokerDrawn = false;
+  if (gs.drawnTileId) {
+    var drawn = gs.tiles.find(function(t) { return t.id === gs.drawnTileId && t.owner === aiPlayer; });
+    if (drawn && drawn.isJoker) hasJokerDrawn = true;
+  }
+  var poolTotal = gs.tiles.filter(function(t) { return t.owner === 'pool'; }).length;
+  var factor = (hasJokerDrawn ? 0.6 : 1.0) * (poolTotal === 0 ? 1.5 : 1.0);
+  if (conf.minCount === 2) return Math.random() < 0.55 * factor;
+  if (conf.minCount === 3) return Math.random() < 0.35 * factor;
+  return Math.random() < 0.20 * factor;
 };

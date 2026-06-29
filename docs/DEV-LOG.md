@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-06-29 产出（续四）
+
+### AI 策略持续优化
+
+| 变更 | 说明 |
+|------|------|
+| **空间约束重构** | 每个相邻空位独立计算合法值范围取并集；阈值加入该色 unseenJ 缓冲 |
+| **Joker 双路径** | 必然 Joker（`possible=[]`）不受 `aiWrongJoker` 限制；随机 Joker 受限制 |
+| **fallback 三级级联** | `bothSeen` 永不放宽（双色已占绝不可能），仅放宽 `oneSeen` |
+| **Hard 中位偏置** | `rangeMid += nLeft - nRight` — 左侧空位多→偏大，右侧空位多→偏小 |
+| **Hard pickInsert** | Joker 放置评分：挨已翻牌+3、间隙+1、两端-2、相邻数字间-2 |
+| **Hard pickColor 阶段感知** | 早期(翻牌<40%)：Score=己方×2+对手暗牌数；中后期=同Medium |
+| **推断降权** | 对手猜测推断从绝对 mark→`inferred` 计数 → penalty=min(0.3×count, 0.9) |
+| **shouldContinue 调整** | Medium 70/50/30%，Hard 55/35/20%；池空×1.5，Joker×0.6 |
+| **Joker 随机概率** | Easy 10%→3%，Medium/Hard 固定→动态 `unseenJ/(unrevTotal+2)` |
+| **文档对齐** | GAME-MODEL.md §7 完全重写，覆盖所有最新策略细节 |
+
+---
+
 ## 2026-06-29 产出（续三）
 
 ### AI 策略代码重构

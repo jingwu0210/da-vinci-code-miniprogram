@@ -15,7 +15,7 @@ exports.pickGuess = function(gs, aiPlayer) {
   var tHand = C.getHand(gs.tiles, target).filter(function(t) { return !t.isRevealed; });
   if (!tHand.length) return null;
   var pos = tHand[Math.floor(Math.random() * tHand.length)].position;
-  var val = Math.random() < 0.1 ? -1 : Math.floor(Math.random() * 12);
+  var val = Math.random() < 0.03 ? -1 : Math.floor(Math.random() * 12);
   return { target: target, position: pos, value: val };
 };
 
