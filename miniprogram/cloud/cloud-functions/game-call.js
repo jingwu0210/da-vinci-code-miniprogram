@@ -28,7 +28,7 @@ module.exports = {
   insertTile:    (gameId, position) => call('insertTile', { gameId, position }),
   makeGuess:     (gameId, targetOpenid, position, value) =>
                    call('makeGuess', { gameId, targetOpenid, position, value }),
-  passTurn:      (gameId) => call('passTurn', { gameId }),
+  passTurn:      (gameId, reveal) => call('passTurn', { gameId, reveal }),
   quitGame:      (gameId) => call('quitGame', { gameId }),
   aiMove:        (gameId, difficulty) => call('aiMove', { gameId, difficulty }),
 };

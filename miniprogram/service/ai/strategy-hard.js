@@ -1,7 +1,3 @@
 /**
- * 困难 AI —— 概率矩阵推理。
+ * HARD AI — 已移至云函数 cloudfunctions/game/handlers/aiMove.js，本文件不再使用。
  */
-exports.execute = function (gameState, aiOpenid) {
-  // TODO: 实现概率矩阵策略
-  return [];
-};

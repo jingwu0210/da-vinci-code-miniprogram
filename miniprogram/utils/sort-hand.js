@@ -70,4 +70,46 @@ function sortHand(hand) {
   return result;
 }
 
-module.exports = { sortKey, compare, sortHand };
+/**
+ * 比较两个 sortKey 数组，返回 -1/0/1。
+ */
+function _compareKey(a, b) {
+  if (a[0] < b[0]) return -1;
+  if (a[0] > b[0]) return 1;
+  if (a[1] < b[1]) return -1;
+  if (a[1] > b[1]) return 1;
+  return 0;
+}
+
+/**
+ * 返回手牌中所有合法插入位置索引。
+ * 位置 i 合法当且仅当:
+ *   (i==0 || sortKey(hand[i-1]) ≤ sortKey(tile))
+ *   ∧
+ *   (i==len || sortKey(tile) ≤ sortKey(hand[i]))
+ *
+ * Joker 牌（sortKey → [Infinity, 0]）可在任意位置插入。
+ */
+function findValidInsertPositions(hand, tile) {
+  const positions = [];
+  const len = hand.length;
+
+  // Joker 可在任意位置插入
+  if (tile.isJoker || tile.value === JOKER_VALUE) {
+    for (let i = 0; i <= len; i++) positions.push(i);
+    return positions;
+  }
+
+  const tk = sortKey(tile);
+
+  for (let i = 0; i <= len; i++) {
+    const leftOk = (i === 0) || _compareKey(sortKey(hand[i - 1]), tk) <= 0;
+    const rightOk = (i === len) || _compareKey(tk, sortKey(hand[i])) <= 0;
+    if (leftOk && rightOk) {
+      positions.push(i);
+    }
+  }
+  return positions;
+}
+
+module.exports = { sortKey, compare, sortHand, findValidInsertPositions };

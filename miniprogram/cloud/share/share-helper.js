@@ -11,7 +11,7 @@ const DEFAULT_SHARE_IMAGE = 'https://cdn.example.com/share-card.png';
 function roomShareConfig(roomId) {
   return {
     title:    DEFAULT_SHARE_TITLE,
-    path:     buildRoute(ROUTES.ROOM_DETAIL, { roomId }),
+    path:     buildRoute(ROUTES.ROOM_DETAIL, { roomId, join: '1' }),
     imageUrl: DEFAULT_SHARE_IMAGE,
   };
 }

@@ -1,10 +1,213 @@
 # 开发日志
 
-> 最后更新: 2026-06-22
+> 最后更新: 2026-06-29
 
 ---
 
-## 今日产出
+## 2026-06-29 产出（续三）
+
+### AI 策略代码重构
+
+| 变更 | 说明 |
+|------|------|
+| **提取共享核心** | 将 Medium/Hard 中重复的 ~110 行推理逻辑提取到 `ai-common.js`：`evaluatePositions()`（seen表+否定+sortKey上下界+空间约束+Joker推理）、`pickFallback()`（position感知兜底）、`shouldContinueWithProbs()`（置信度决策） |
+| **否定追踪升级** | 从 position+color → **tile ID 追踪**（`makeGuess.js` 新增 `targetTileId`），位置偏移不再影响否定有效性 |
+| **Medium 精简** | 172 行 → 42 行（-75%），仅保留评分选 best + shouldContinue |
+| **Hard 精简** | 108 行 → 90 行，保留阶段感知 pickColor + 概率矩阵中位加权 + argmax |
+| **DB 快照修复** | `aiMove.js` Step 3 入口重新读 DB，防止 pickGuess 基于过期快照 |
+
+### 文件行数
+
+| 文件 | 重构前 | 重构后 |
+|------|:------:|:------:|
+| `ai-common.js` | 115 | 275 (+160 共享函数) |
+| `ai-strategy-medium.js` | 172 | **42** (-130) |
+| `ai-strategy-hard.js` | 108 | **90** (-18) |
+| `ai-strategy-easy.js` | 20 | 25 (+5) |
+
+### 阶段 4 & 5 状态
+
+| 阶段 | 状态 | 备注 |
+|:----:|:---:|------|
+| 4 — Board 游戏界面 | ✅ 基本完成 | 前端细节待调整（动画、引导文字、选中态） |
+| 5 — AI 对战 | ✅ 基本完成 | Easy/Medium/Hard 三难度策略完善，后续可持续调优概率参数 |
+
+---
+
+## 2026-06-29 产出（续二）
+
+### AI 策略统一 & shouldContinue 重构
+
+| 变更 | 说明 |
+|------|------|
+| **Hard pickColor** | 改为同 Medium（对手暗牌多的颜色优先），不再用均衡消耗策略 |
+| **Hard pickGuess** | 完全重写：包含 Medium 全部逻辑（seen[v][c] + sortKey上下界 + 空间约束 + Joker推理 + 否定信息 + position感知fallback），再叠加概率矩阵 P[opp][pos][val] + argmax |
+| **shouldContinue** | Medium 更激进（90/80/65%），Hard 更谨慎（80/65/50%）；两者终局 ≤2 暗牌均 100% 冲胜；均无连猜上限；minCount=1 均 100% 必猜 |
+| **ai-common.js** | 新增 `estimateConfidence(tiles, aiPlayer)` — 扫描对手所有位置，返回最佳候选数 minCount 和总暗牌数 totalUnrev |
+| **设计原理** | Hard 专家 AI 更懂风险控制（猜错亮己牌），不确定时见好就收；Medium 模拟普通玩家，猜对后容易"上头" |
+
+### ⚠️ 待持续优化
+
+| # | 内容 |
+|:--:|------|
+| 1 | 概率矩阵未跨回合持久化（当前每轮重新计算），应跨回合跟踪并动态更新 |
+| 2 | `shouldContinue` 未利用概率矩阵历史推理结果 |
+| 3 | `estimateConfidence` 每轮独立计算，Hard 模式下应结合持久化概率矩阵 |
+
+### GAME-MODEL.md §7 更新
+
+完全重写 AI 决策算法章节：策略对比总表（pickColor/pickGuess/shouldContinue 三维度）+ 各难度详细描述 + 待优化标注。
+
+---
+
+## 2026-06-29 产出（续）
+
+### AI 回合 Bug 修复
+
+| 问题 | 根因 | 修复 |
+|------|------|------|
+| Medium AI 跳过猜测直接 pass | `pickGuess` 中某位置 `possible` 为空（空间约束过滤后无候选，且该色 Joker 已见无法猜-1），但 `best` 仍被选中，导致 `value=undefined` → makeGuess 返回 `INVALID_PARAMS` → 静默 fall through 到 pass | `ai-strategy-medium.js`: Joker 添加后新增 `if (possible.length === 0) continue` 跳过无候选位置，确保 `best` 永远指向有有效猜测的位置 |
+
+### PRD 文档对齐
+
+| 章节 | 变更 |
+|------|------|
+| §2.3 回合流程 | 重构：摸牌→**暂不插入**→猜测→猜错时自动/手动插入（与当前实现一致） |
+| §5.4 状态机 | 更新：移除 DRAWING→INSERTING 路径，改为 DRAWING→GUESSING（摸牌直入猜测） |
+| §5.4 回合流程 | 新增猜错/结束回合的详细插入和亮牌逻辑 |
+| §5.4 AI 回合 | 更新：AI 现在执行完整回合（摸牌→猜测→pass），非旧版"摸牌即结束" |
+| §8 games 集合 | `tilePool`+`playerHands` → `tiles[]`（`owner` 字段），新增 Joker 字段 |
+| §9 云函数 | 重写 `drawTile`/`insertTile`/`makeGuess`/`passTurn`/`aiMove` 描述以匹配当前实现 |
+
+### 文档交叉验证
+
+| 文档 | 状态 |
+|------|:--:|
+| `PRD.md` | ✅ 回合流程、状态机、数据库、云函数已对齐 |
+| `GAME-MODEL.md` | ✅ tiles[] 模型、状态转移表、AI 策略已对齐（上次更新） |
+| `API.md` | ✅ games 文档结构、aiMove 返回格式已对齐（上次更新） |
+| `CLAUDE.md` | ✅ 数据模型、回合流程、Joker 摆放、进度表已对齐（上次更新） |
+| `ARCHITECTURE.md` | ✅ 无变更需求（分层架构未变） |
+| `DESIGN-SPEC.md` | ✅ 无变更需求（视觉规范未变） |
+| `DEV-LOG.md` | ✅ 当前条目 |
+
+---
+
+## 2026-06-24 ~ 2026-06-29 产出
+
+### 阶段 4 — Board 游戏界面 🏗 (主要完工)
+
+| 任务 | 产出 | 状态 |
+|------|------|:--:|
+| T4A.1 主题统一 | 移除明亮主题 → 全局暗色 `#2C3A4A`；新增面板/卡牌/插入槽 CSS token | ✅ |
+| T4A.2 插入位置判定 | `sort-hand.js` 新增 `findValidInsertPositions` 按排序规则过滤合法位置 | ✅ |
+| T4B.1 game-tile 组件 | 1:2 竖立牌（96×192 / 80×160 / 64×128rpx）、3D 厚度效果、正面/背面（≤ 标记）、5 状态 | ✅ |
+| T4B.2 player-hand 组件 | flex 大号牌排列 + ▲ 三角插入槽（仅合法位置、脉冲动画）+ 正面朝上浮牌 | ✅ |
+| T4B.3 opponent-hand 组件 | flex 小号牌排列 + 玩家标签 + 选中态金色边框 + clearSelection | ✅ |
+| T4B.4 guess-panel 组件 | 数字网格（4×3）+ Joker 全宽按钮 + 确认/撤销（结束回合独立在外） | ✅ |
+| T4C board 页面组装 | 5 阶段布局 + 盘面样式 + 全量刷新交互 + AI 回合自动推进 | ✅ |
+| T4D 实时同步 | DB watch 刷新 + AI toast 提示 + opponent-hand watch 更新 | ✅ |
+
+**~50 文件修改**。单元测试 20 项全部通过。
+
+### 数据结构重构
+
+| 变更 | 说明 |
+|------|------|
+| `pool` + `hands` → `tiles[]` | 扁平数组，每牌带 `owner` 字段（`'pool'` \| `openid`），从根本上杜绝牌重复 |
+| `_engine.js` 重写 | 新增 `getPlayerHand(tiles, oid)`、`poolRemaining(tiles)`、`drawFromPool(tiles, color, caller)`、`reorderHand` |
+| 云函数全量适配 | 8 个 handler 全部改用 `tiles` 数组：`gs.tiles.map(t => ...)`、`gs.tiles.filter(t => t.owner === ...)` |
+
+### Joker 架构重构
+
+| 变更 | 说明 |
+|------|------|
+| 初始 Joker 摆放回合 | 新机制：`initialJokers` + `initialJokerTurn` — 所有玩家按 turnOrder 依次放置初始 Joker |
+| Joker 处理收拢 | 仅 `initGame` + `insertTile` 涉及初始 Joker；其他 handler 不再有 scattered Joker checks |
+| `jokerPendingReveal` | 猜错 Joker 后标记 → insertTile 放置后自动翻开 → 结束回合 |
+| 移除 `allJokersToPlace` | passTurn、makeGuess、aiMove 中所有 scattered checks 已清理 |
+| `insertTile` 重写 | 三段式：A. 初始 Joker 摆放 → B. 猜错 Joker 揭示 → C. 正常插入数字牌 |
+
+### AI 策略完善
+
+| 难度 | 策略 | 文件 |
+|:---:|------|------|
+| Easy | 纯随机 — pickColor 随机、pickGuess 随机位置+值、10% 猜 Joker | `ai-strategy-easy.js` |
+| Medium | 启发式 — sortKey 上下界 + (value,color) 精确排除 + 空间约束过滤 + 否定信息 + 对手猜测推断 | `ai-strategy-medium.js` |
+| Hard | 概率矩阵 — Medium 上下界 + 概率矩阵 P[opp][pos][val] + argmax 置信度 + 否定信息更新 | `ai-strategy-hard.js` |
+| 公共层 | 共享 helpers：`getHand`、`getOpponents`、`doMove`（完整回合编排） | `ai-common.js` |
+
+### AI 策略 Bug 修复
+
+| 问题 | 根因 | 修复 |
+|------|------|------|
+| Medium AI 重复猜同位置 Joker | Joker (-1) 添加逻辑绕过了 `negated` 否定检查（否定排除仅对 0~11 循环有效） | Joker 添加前检查 `negated[opp+'_'+pos+'_-1']` |
+| Medium AI 文件 SyntaxError | 错误编辑导致重复代码 + 多余 `}` | 重构控制流：`if (best) return` 提前返回 + 兜底 fallback |
+| console.log 引用未声明变量 | `nRight`/`nLeft` 在声明前被引用 | 移除提前的 console.log |
+
+### passTurn 重构
+
+| 变更 | 说明 |
+|------|------|
+| `reveal` 参数 | `reveal=true`（默认/猜错）：亮摸牌 + 自动插入 → 切回合；`reveal=false`（猜对后主动结束）：不亮牌 → 切回合 |
+| WAITING/INSERTING 直通 | AI Joker 放置场景下允许直接切回合 |
+| 自动插入 | 数字牌猜错后自动找到唯一合法插入位；Joker 进入 INSERTING 阶段手动放置 |
+
+### makeGuess 重构
+
+| 变更 | 说明 |
+|------|------|
+| 猜错数字牌 | 自动插入唯一正确位置 → 亮牌 → 切回合 |
+| 猜错 Joker | 设置 `jokerPendingReveal` → 进入 INSERTING → 用户手动放置 → 亮牌 → 切回合 |
+| 猜对 | 翻开对手牌 → 留在 GUESSING 可继续猜 → 胜负检查 |
+
+### DESIGN-SPEC 更新
+
+| 变更 | 说明 |
+|------|------|
+| 取消双主题 | 全局统一暗色毛毡 `#2C3A4A` |
+| 卡牌 1:2 竖立 | 替代 2:1 横宽 |
+| 暗牌 "≤" | 替代 "?"，表示排序方向 |
+| 插入槽 ▲ 三角 | 替代虚线，金色脉冲动画 |
+| 摸牌正面朝上 | 玩家直接可见数字 |
+| 仅合法插入位 | 按排序规则过滤不合规位置 |
+
+---
+## 2026-06-23 产出
+
+### 阶段 3 — 登录 & 用户系统 + 房间管理 + 大厅页面 ✅
+
+| 任务 | 产出 |
+|------|------|
+| T3.1 user 云函数 | `cloudfunctions/user/` — login / getProfile / updateProfile |
+| T3.2 room 云函数 | `cloudfunctions/room/` — createRoom / joinRoom / leaveRoom / toggleReady / startGame (含 callerOpenid 跨云函数身份转发修复) |
+| T3.3 登录页 UI | Figma 还原：品牌标题 + 微信一键登录 + 头像昵称设置（chooseAvatar/nickname 组件 + 云存储上传）+ 游客模式 |
+| T3.4 大厅页 UI | Figma 还原：用户卡（可点击进设置）+ 双模式选择 + 创建/加入房间 + 加入房间码弹窗 + 底部导航 |
+| T3.5 创建房间页 | 模式切换（AI/好友）+ 玩家数/难度/密码配置 |
+| T3.6 房间等待室 | 房间码展示+复制 + 微信分享 + 玩家列表 + 准备/取消 + 开始游戏 + DB watch 实时同步 |
+| T3.7 端到端验证 | login→lobby→room/create→room/detail→board 完整链路通过 |
+| T3.8 部署 | user / room / game 三个云函数已部署至 CloudBase |
+
+**commits**: `5487562` / `9350ada`（路由修复）+ 若干修复提交
+
+### 关键 Bug 修复
+
+| 问题 | 解决 |
+|------|------|
+| 跨云函数调用丢失 OPENID | `game/index.js` 支持 `callerOpenid` 覆盖参数，`room.startGame` 显式传入 |
+| 头像临时文件不可持久化 | 登录确认时上传至云存储，`cloud://` fileID 写入 DB |
+| 头像预览呈椭圆形 | 图片与按钮分离：`<image>` 独立圆形渲染 + 透明 `<button>` 覆盖 |
+| 页面内标题栏与系统导航重复 | 删除 lobby/room/create/detail 自定义 top-bar，新增 §1.2 导航栏规范 |
+| 横向溢出 | `app.wxss` 全局 + 各页添加 `overflow-x:hidden` + `width:100vw` |
+| lobby 无返回登录入口 | 用户卡点击→设置页→退出登录 |
+| 协议/隐私点击无内容 | 新建 `view/pages/agreement/` 页面，注册到 app.json |
+| room startGame NOT_AUTHORIZED | `game/index.js` 接受事件传入的 `callerOpenid` 覆盖系统 OPENID |
+| 路由路径不匹配 app.json | `routes.js` 全部路径增加 `view/` 前缀 |
+| app.js 缺少 wx.login | `onLaunch` 新增 `wx.login()` 建立用户身份 |
+
+---
+
+## 2026-06-22 产出
 
 ### 阶段 1 — 项目基础搭建 ✅
 
@@ -77,26 +280,63 @@
 
 ---
 
+## 2026-06-23（续）产出
+
+### 阶段 4 — Board 游戏界面 🏗
+
+| 任务 | 产出 | 状态 |
+|------|------|:--:|
+| T4A.1 主题更新 | 移除明亮主题 → 统一暗色 `#2C3A4A`；新增面板/卡牌/插入槽 CSS token | ✅ |
+| T4A.2 插入位置判定 | `sort-hand.js` 新增 `findValidInsertPositions` 按排序规则过滤合法位置 | ✅ |
+| T4B.1 game-tile 组件 | 1:2 竖立牌（96×192 / 80×160 / 64×128rpx）、3D 厚度效果、正面/背面（≤ 标记）、5 状态 | ✅ |
+| T4B.2 player-hand 组件 | flex 大号牌排列 + ▲ 三角插入槽（仅合法位置、脉冲动画）+ 正面朝上浮牌 | ✅ |
+| T4B.3 opponent-hand 组件 | flex 小号牌排列 + 玩家标签 + 选中态金色边框 + clearSelection | 🏗 |
+| T4B.4 guess-panel 组件 | 数字网格（4×3）+ Joker 全宽按钮 + 确认/撤销（结束回合独立在外） | ✅ |
+| T4C board 页面组装 | 5 阶段布局 + 盘面样式 + 全量刷新交互 + 猜对后继续/结束选项 | 🏗 |
+| T4D 实时同步 & 动画 | DB watch 刷新；AI mock 800ms → passTurn；牌翻开 scaleY CSS 动画 | 🏗 |
+| 数据结构重构 | `pool`+`hands` → `tiles[]` 数组 + `owner` 字段，杜绝牌重复 | ✅ |
+| 游戏流程调整 | 摸牌→直接猜测（跳过插入）；猜错/数字牌自动插入、万能牌手动插入 | ✅ |
+| 调试脚本 | `testHands` + `testFirstPlayer` 云函数参数，5 场景一键切换 | ✅ |
+
+**~30 文件修改**。单元测试 142+ 项通过。
+
+### DESIGN-SPEC 更新（同日）
+
+| 变更 | 说明 |
+|------|------|
+| 取消双主题 | 全局统一暗色毛毡 `#2C3A4A` |
+| 卡牌 1:2 竖立 | 替代 2:1 横宽 |
+| 暗牌 "≤" | 替代 "?"，表示排序方向 |
+| 插入槽 ▲ 三角 | 替代虚线，金色脉冲动画 |
+| 摸牌正面朝上 | 玩家直接可见数字 |
+| 仅合法插入位 | 按排序规则过滤不合规位置 |
+| 移除激励视频 | 结算页去掉广告入口 |
+
+
 ## TODO — 下次任务
 
-### 阶段 3 — 登录 & 用户系统 + 房间管理 + 大厅页面
+### 阶段 4 剩余项
 
-| # | 任务 | 状态 |
-|:--:|------|:---:|
-| T3.1 | `cloudfunctions/user/` — login / getProfile / updateProfile | ⏳ |
-| T3.2 | `cloudfunctions/room/` — createRoom / joinRoom / leaveRoom / toggleReady / startGame | ⏳ |
-| T3.3 | 登录页 UI (`view/pages/login/`) — 微信登录 + 游客 + 协议 | ⏳ |
-| T3.4 | 大厅页 UI (`view/pages/lobby/`) — 模式选择 + 创建/加入房间 | ⏳ |
-| T3.5 | 创建房间页 UI (`view/subpackages/room/create/`) | ⏳ |
-| T3.6 | 房间等待室 UI (`view/subpackages/room/detail/`) | ⏳ |
-| T3.7 | 端到端串联 — login→lobby→create→detail→board | ⏳ |
-| T3.8 | 部署 user + room 云函数 | ⏳ |
+| # | 内容 | 优先级 |
+|:--:|------|:--:|
+| 1 | 倒牌动画修正：仅被翻开时触发（was-revealed），摸牌不触发；动画效果站→倒→站 | 高 |
+| 2 | 游戏状态/环节引导文字："等待对手猜牌" / "你的回合" / "请摸牌" 等 | 高 |
+| 3 | opponent-hand 选中态金色边框 + clearSelection 完善 | 中 |
+| 4 | board 页面猜对后继续/结束选项交互完善 | 中 |
+| 5 | gameTile 白色牌和黑色牌阴影风格一致 | 低 |
+| 6 | 移除右上角大厅 icon（不需要返回大厅功能） | 低 |
+
+### 近期 Bug 待修复
+
+| # | 问题 | 优先级 |
+|:--:|------|:--:|
+| 1 | Hard AI 从不猜 Joker（`for v = leftMax+1; v < rightMin` 永远 >= 0） | 中 |
+| 2 | Easy AI 只猜 1 次后 pass（可故意连续猜错以迷惑玩家） | 低 |
 
 ### 后续阶段
 
 | 阶段 | 内容 | 预估 |
 |:----:|------|:---:|
-| 4 | Board 游戏界面 (全部组件 + DB watch + 完整回合流程) | 4 天 |
-| 5 | AI 对战 (三种难度策略) | 2 天 |
+| 5 | AI 对战 — Hard Joker 修复 + shouldContinue 调优 | 1 天 |
 | 6 | 结算 + 历史 + 分享 | 2 天 |
-| 7 | 教程 + 设置 + 音效振动 + 动画打磨 + 弱网 + 审核提交 | 6 天 |
+| 7 | 教程 + 动画打磨 + 弱网 + 审核提交 | 4 天 |

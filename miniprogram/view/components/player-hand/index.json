@@ -1,1 +1,6 @@
-{ "component": true }
+{
+  "component": true,
+  "usingComponents": {
+    "game-tile": "../game-tile/index"
+  }
+}

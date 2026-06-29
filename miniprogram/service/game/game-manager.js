@@ -51,9 +51,9 @@ const GameManager = {
     return resp.data;
   },
 
-  async passTurn(gameId) {
+  async passTurn(gameId, reveal) {
     this._validate(gameId);
-    const resp = await GameCall.passTurn(gameId);
+    const resp = await GameCall.passTurn(gameId, reveal);
     this._handleError(resp);
     return resp.data;
   },

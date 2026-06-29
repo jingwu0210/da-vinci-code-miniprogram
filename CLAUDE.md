@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **基础库**: v3.16.1
 - **CloudBase 环境**: `testenv001-d7gtpfjahfa6ab5f6`（`miniprogram/app.js` 第 8 行）
 - **项目类型**: 微信小程序原生框架 + 云开发
-- **Git 仓库**: `main` 分支，commit 历史见 `docs/DEV-LOG.md`
+- **Git 仓库**: `jingwu0210/da-vinci-code-miniprogram.git`，`main` 分支，commit 历史见 `docs/DEV-LOG.md`
 
 ## Development
 
@@ -52,28 +52,44 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 | `service/game/turn-manager.js` | 状态转移表 + `PASS_REVEALS_TILE` |
 | `utils/game-engine.js` | 前端统一入口（收拢以上所有纯逻辑） |
 
+### 业务服务层（Phase 3）
+
+| 文件 | 职责 |
+|------|------|
+| `service/auth/auth-service.js` | 登录/游客/会话管理（`initSession`/`tryGuestMode`/`updateProfile`） |
+| `service/room/room-manager.js` | 房间生命周期（`createAndJoin`/`joinById`/`leave`/`toggleReady`/`startGame`） |
+| `service/room/ready-checker.js` | 准备状态校验 |
+| `cloud/cloud-functions/user-call.js` | user 云函数调用封装 |
+| `cloud/cloud-functions/room-call.js` | room 云函数调用封装 |
+| `cloud/auth/wechat-auth.js` | `wx.login` / `checkSession` / 授权状态管理 |
+| `cloud/auth/profile-auth.js` | 头像（`chooseAvatar`）/ 昵称（`nickname` input）获取与上传 |
+| `cloud/share/share-helper.js` | `onShareAppMessage` 统一配置（房间邀请 + 战绩分享） |
+
 ### 云函数
 
 | 云函数 | 文件 | 状态 |
 |--------|------|:---:|
-| `game` | `cloudfunctions/game/index.js` + 8 handlers + `_engine.js` | ✅ |
-| `room` | `cloudfunctions/room/package.json` (仅模板) | ⏳ |
-| `user` | `cloudfunctions/user/package.json` (仅模板) | ⏳ |
+| `game` | `cloudfunctions/game/index.js` + 8 handlers + 4 AI 策略文件 + `_engine.js` | ✅ |
+| `room` | `cloudfunctions/room/index.js` + 5 handlers (createRoom/joinRoom/leaveRoom/toggleReady/startGame) | ✅ |
+| `user` | `cloudfunctions/user/index.js` + 3 handlers (login/getProfile/updateProfile) | ✅ |
 | `history` | `cloudfunctions/history/package.json` (仅模板) | ⏳ |
 | `quickstartFunctions` | 保留作参考模板 | — |
+
+**跨云函数调用**: `room.startGame` 调用 `game.initGame` 时需显式传入 `callerOpenid`（`cloud.getWXContext().OPENID` 在跨函数调用时会丢失）。`game/index.js` 通过 `event.callerOpenid || cloud.getWXContext().OPENID` 获取真实调用者身份。
 
 ### 页面
 
 | 页面 | 路径 | 状态 |
 |------|------|:---:|
-| 登录 | `view/pages/login/` | 🏗 骨架 |
-| 大厅 | `view/pages/lobby/` | 🏗 骨架 |
-| 游戏主界面 | `view/pages/board/` | 🏗 骨架 |
-| 教程 | `view/pages/tutorial/` | 🏗 骨架 |
-| 历史 | `view/pages/history/` | 🏗 骨架 |
-| 设置 | `view/pages/settings/` | 🏗 骨架 |
-| 创建房间 | `view/subpackages/room/create/` | 🏗 骨架 |
-| 房间等待 | `view/subpackages/room/detail/` | 🏗 骨架 |
+| 登录 | `view/pages/login/` | ✅ |
+| 大厅 | `view/pages/lobby/` | ✅ |
+| 游戏主界面 | `view/pages/board/` | ✅ 骨架完成，交互完善中 |
+| 教程 | `view/pages/tutorial/` | ⏳ |
+| 历史 | `view/pages/history/` | ⏳ |
+| 设置 | `view/pages/settings/` | ✅ |
+| 用户协议 | `view/pages/agreement/` | ✅ |
+| 创建房间 | `view/subpackages/room/create/` | ✅ |
+| 房间等待 | `view/subpackages/room/detail/` | ✅ |
 | 结算 | `view/subpackages/result/` | 🏗 骨架 |
 
 ### 数据库 (CloudBase NoSQL)
@@ -90,27 +106,39 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 ### 牌组
 - 26 张：黑/白各 13 张 (0~11 + Joker)
 - 牌为有色塑料材质——**牌背颜色与正面相同**，颜色可见
-- 2:1 长条形
+- 1:2 竖长条形
+
+### 数据模型
+- `tiles[]` 扁平数组：每张牌带 `owner` 字段（`'pool'` | `openid`），从根本上杜绝牌重复
+- `getPlayerHand(tiles, openid)` — 按 owner 过滤 + position 排序获取手牌
+- `poolRemaining(tiles)` — 按 `owner === 'pool'` 统计各色剩余
+- 牌数守恒不变式: |池牌| + |玩家牌| = 26
+
+### 初始 Joker 摆放回合
+- 发牌后，所有玩家初始手牌中的 Joker 需按 turnOrder 轮流摆放
+- 由 `initialJokers` + `initialJokerTurn` 机制驱动，仅涉及 `initGame` + `insertTile`
+- 全部玩家 Joker 放完 → `initialJokerTurn = null` → 正式回合开始
 
 ### 回合流程
 1. **摸牌** — 从黑/白色牌池中选择一种，随机摸一张（`drawTile(gameId, color)`）
-2. **插入** — 将摸到的牌插入手牌序列（维持排序规则）
+2. **插入** — 将摸到的牌插入手牌序列（维持排序规则）。数字牌：自动插入/手动选位；Joker：手动选位
 3. **猜测** — 选对手某张暗牌，猜其数字（0~11 或 -1 Joker）。**无需猜颜色**（牌背可见）
-4. 猜对→对手牌翻开，可继续；猜错→自己摸的牌翻开，回合结束
+4. 猜对→对手牌翻开，可继续猜；猜错→自己摸的牌翻开（数字牌自动插入、Joker 进入 INSERTING 手动放置）
 
 ### 特殊规则
-- **pass = 猜错**: 选择结束回合，摸到的牌必须翻开（`PASS_REVEALS_TILE = true`）
+- **pass = 猜错**: 选择结束回合，摸到的牌必须翻开（`reveal=true`，默认）。猜对后主动 pass 不亮牌（`reveal=false`）
 - **Joker 判定**: `isGuessMatch(guess, tile)` = `(guess.value === tile.value)`。猜 -1 即为猜 Joker
 - **信息隔离**: `getClientView` — 对手未翻牌仅返回 `{ position, color, isRevealed: false }`，不暴露数字
-- **颜色分池**: `pool = { black: [Tile], white: [Tile] }`，摸牌时按颜色从对应子池抽取
+- **猜错 Joker**: 设置 `jokerPendingReveal` → insertTile 放置后翻开 → 回合结束
+- **颜色分池**: 摸牌时按颜色从对应 owner='pool' 的子集中随机抽取
 
 ## 设计规范
 
 所有视觉/交互决策以 [`docs/DESIGN-SPEC.md`](docs/DESIGN-SPEC.md) 为准：
-- 登录页 + Board 页：暗色毛毡背景 `#2C3A4A`
-- 其余页面：明亮暖白背景 `#F5F5F0`
-- 牌面 2:1 + 立体厚度效果 + 哑面磨砂纹理
+- 全局统一暗色毛毡背景 `#2C3A4A`
+- 牌面 1:2 + 立体厚度效果 + 哑面磨砂纹理
 - 不显示牌池（仅摸牌阶段显示分色剩余计数）
+- 全局统一暗色毛毡背景 `#2C3A4A`
 
 ## 规范文档
 
@@ -129,8 +157,13 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 |:----:|:---:|--------|
 | 1 — 项目基础搭建 | ✅ | `a4d7c23` |
 | 2 — 核心游戏逻辑 | ✅ | `4cc07ed` |
-| 3 — 登录 & 房间 & 大厅 | ⏳ 下次 |
-| 4 — Board 游戏界面 | ⏳ |
-| 5 — AI 对战 | ⏳ |
+| 3 — 登录 & 房间 & 大厅 | ✅ | `b1869bc` |
+| 4 — Board 游戏界面 | ✅ | 待提交（前端细节待调整） |
+| 5 — AI 对战 | ✅ | 待提交（三难度策略完善，概率参数可持续调优） |
 | 6 — 结算 & 历史 | ⏳ |
 | 7 — 打磨上线 | ⏳ |
+
+
+## 当有问题时需要修复或者debug时
+不要怀疑用户未部署fix到云函数，找别的原因。不要提出让用户尝试部署的解决方案。
+请用正确的修复方式（e.g. 遵从工程学角度可维护，从root cause根源处理，合理的model / structure，考虑代码可维护性和可扩展性）。而不是采用某些simple fix或者hack但是可能会在未来引入更多问题。

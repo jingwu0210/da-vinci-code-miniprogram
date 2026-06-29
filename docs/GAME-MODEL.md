@@ -55,19 +55,30 @@ DECK = BLACK_TILES ∪ WHITE_TILES
 |DECK| = 26
 ```
 
-### 1.4 牌池 Pool
+### 1.4 Tiles 数组（统一数据模型）
 
 ```
-Pool: [Tile]                           // 未发出的牌
-初始: Pool = shuffle(DECK)
-不变式: |Pool| + Σ |hands[p]| = 26
+所有 26 张牌存储在一个扁平 tiles[] 数组中，每张牌通过 owner 字段标识归属：
+
+tiles[i] = {
+  ...Tile,
+  owner: 'pool' | openid              // 'pool' = 在牌池中，openid = 属于某位玩家
+}
+
+牌池牌: tiles.filter(t => t.owner === 'pool')
+玩家手牌: tiles.filter(t => t.owner === openid).sort((a,b) => a.position - b.position)
+
+不变式: |{t | t.owner === 'pool'}| + |{t | t.owner !== 'pool'}| = 26
 ```
+
+> **设计动机**: 替代旧 `pool` + `hands` 分离模型，从根本上杜绝同一张牌同时存在于池和手牌的 bug。
 
 ### 1.5 玩家手牌 Hand
 
 ```
-Hand: [Tile]                           // 有序序列
+Hand: [Tile]                           // 有序序列，tiles.filter(t => t.owner === openid)
 初始大小: playerCount === 4 ? 3 : 4    // 2~3 人 → 4 张，4 人 → 3 张
+位置: hand[i].position = i             // 插入后 reorderHand 重排
 ```
 
 ### 1.6 排序规则（全序 ≺）
@@ -93,13 +104,22 @@ t_a ≺ t_b  ⇔  (t_a.value < t_b.value)
 ```
 GameState = {
   status:        'playing' | 'finished',
-  phase:         'drawing' | 'inserting' | 'guessing',
+  phase:         'drawing' | 'inserting' | 'guessing' | 'waiting',
   turnOrder:     [openid],
   turnIndex:     Integer,
-  pool:          [Tile],
-  hands:         Map<openid, [Tile]>,
+  tiles:         [Tile],              // 所有 26 张牌，通过 tile.owner 区分归属
   drawnTileId:   String | null,
   turnLog:       [TurnRecord],
+
+  // Joker 初始摆放 (见 initGame)
+  initialJokers:     { [openid]: [tile_id, ...] } | null,
+  initialJokerTurn:  Integer | null,       // 当前摆放第几个玩家
+  jokersToPlace:     [tile_id] | null,     // 当前玩家剩余待放 Joker
+  originalTurnIndex: Integer,              // 正式回合先手
+
+  // Joker 猜错揭示
+  jokerPendingReveal: Boolean | null,
+
   maxTurnTime:   60000                  // ms
 }
 ```
@@ -140,14 +160,22 @@ GameState = {
 
 | 当前状态 | 事件 | 条件 | 下一状态 | 副作用 |
 |----------|------|------|----------|--------|
+| INIT | `INIT_JOKER` | 任意玩家有初始 Joker | INSERTING | initialJokerTurn=0, 第一个玩家的 Joker → drawnTileId |
+| INSERTING | `INSERT_JOKER` | 同玩家还有 Joker | INSERTING | jokersToPlace.shift → drawnTileId |
+| INSERTING | `INSERT_JOKER` | 当前玩家 Joker 放完，还有后续玩家 | INSERTING | initialJokerTurn++ → 下一个玩家的 Joker |
+| INSERTING | `INSERT_JOKER` | 所有玩家 Joker 放完 | DRAWING | initialJokerTurn=null, turnIndex=originalTurnIndex |
 | WAITING | `BEGIN_TURN` | 轮到该玩家 | DRAWING | 开始计时器 |
-| DRAWING | `DRAW_TILE(color)` | 该颜色池非空 | INSERTING | pool[color].splice → drawnTileId |
+| DRAWING | `DRAW_TILE(color)` | 该颜色池非空 | INSERTING | tile.owner → 玩家, drawnTileId |
 | DRAWING | `DRAW_TILE` | 两颜色池皆空 | GUESSING | drawnTileId=null，无需插入 |
-| INSERTING | `INSERT(pos)` | 0 ≤ pos ≤ \|hand\| | GUESSING | 牌移至 hand[pos] |
+| INSERTING | `INSERT(pos)` | 非 Joker，0 ≤ pos ≤ \|hand\| | GUESSING | tile.position 更新 |
+| INSERTING | `INSERT_JOKER` | 猜错 Joker → 揭示 | WAITING | isRevealed=true, turnIndex++ |
 | GUESSING | `GUESS` → 正确 | 对手还有未翻牌 | GUESSING | 目标牌 isRevealed=true |
 | GUESSING | `GUESS` → 正确 | 所有对手全部翻开 | GAME_OVER | winner = 当前玩家 |
-| GUESSING | `GUESS` → 错误 | — | NEXT_TURN | 己摸牌 isRevealed=true |
-| GUESSING | `PASS` | — | NEXT_TURN | 等同猜错：己摸牌 isRevealed=true |
+| GUESSING | `GUESS` → 错误(数字牌) | — | WAITING | 自动插入 + 亮牌, turnIndex++ |
+| GUESSING | `GUESS` → 错误(Joker) | — | INSERTING | jokerPendingReveal=true |
+| GUESSING | `PASS(reveal=true)` | 有 drawnTile 且非 Joker | WAITING | 自动插入 + 亮牌, turnIndex++ |
+| GUESSING | `PASS(reveal=true)` | 有 drawnTile 且是 Joker | INSERTING | 手动放置（亮牌已设置） |
+| GUESSING | `PASS(reveal=false)` | 猜对后主动结束 | WAITING | 不亮牌, turnIndex++ |
 | NEXT_TURN | — | 所有对手全翻开 | GAME_OVER | winner = 当前玩家 |
 | NEXT_TURN | — | 否则 | WAITING | turnIndex = (turnIndex+1) % N |
 
@@ -183,7 +211,7 @@ RECONNECT(openid, gameId):
 
 ```
 INIT_GAME(players, playerCount):
-  1. 创建 26 张牌 (0-11 × 2 色 + Joker × 2)
+  1. 创建 26 张牌 (0-11 × 2 色 + Joker × 2)，全部 owner='pool', position=null
 
   2. Fisher-Yates 洗牌:
      for i = 25 down to 1:
@@ -194,15 +222,20 @@ INIT_GAME(players, playerCount):
      handSize = playerCount === 4 ? 3 : 4
      for each player:
        hand = deck.splice(0, handSize)
-       sort(hand)                       // 按 SortKey 排序
-     pool = deck                        // 剩余 = 牌池
+       sort(hand)                        // 按 SortKey 排序
+       hand[i].owner = p.openid          // 归属玩家
+     // 剩余牌保持 owner='pool'
 
   4. 先手确定:
      // 持有全局最小数字牌的玩家先手（Joker 不参与比较）
-     firstPlayer = argmin(p ∈ players, min({t.value | t ∈ hands[p], ¬t.isJoker}))
+     firstPlayer = argmin(p ∈ players, min({t.value | t ∈ getPlayerHand(tiles, p), ¬t.isJoker}))
      平局则随机
 
-  5. 返回 gameState
+  5. 收集初始 Joker → initialJokers
+     若 anyJokers → 进入初始 Joker 摆放回合（按 turnOrder 依次放置）
+     否则 → phase=DRAWING，正式回合开始
+
+  6. 返回 gameState
 ```
 
 ### 3.2 牌数分布
@@ -310,19 +343,19 @@ DRAW_TILE(gameState, color):
   Assert: caller === turnOrder[turnIndex] ∧ phase === 'drawing'
   // color ∈ { BLACK, WHITE } — 玩家选择摸哪种颜色的牌
 
-  subPool = pool[color]
-  if |subPool| === 0:
+  poolTiles = tiles.filter(t => t.owner === 'pool' && t.color === color)
+  if |poolTiles| === 0:
     return { drawnTile: null, empty: true }  // 该颜色池空
 
-  idx = random(0, |subPool| - 1)
-  tile = subPool.splice(idx, 1)[0]
-  hands[caller].push(tile)
-  tile.position = |hands[caller]| - 1
+  idx = random(0, |poolTiles| - 1)
+  tile = poolTiles[idx]
+  tile.owner = caller                       // 归属转移
+  tile.position = getPlayerHand(tiles, caller).length
   drawnTileId = tile.id
   phase = 'inserting'
   turnLog.push({ turnNumber, playerOpenid: caller, action: 'draw', color })
 
-  return { drawnTile: sanitize(tile), poolRemaining: { black: |pool.black|, white: |pool.white| } }
+  return { drawnTile: sanitize(tile), poolRemaining: { black, white, total } }
 
 // 若两池皆空 → drawnTileId=null, phase→guessing (跳过插入)
 ```
@@ -334,17 +367,29 @@ INSERT_TILE(gameState, position):
   Assert: caller === turnOrder[turnIndex] ∧ phase === 'inserting'
   Assert: drawnTileId ≠ null ∧ 0 ≤ position ≤ |hand|
 
-  hand = hands[caller]
-  idx = findIndexById(hand, drawnTileId)
-  tile = hand.splice(idx, 1)[0]
-  hand.splice(position, 0, tile)
+  // 若为初始 Joker 摆放（initialJokerTurn != null），跳转到初始 Joker 逻辑
+  // 若为猜错 Joker 揭示（jokerPendingReveal），放置后翻开 → 结束回合
+  // 否则正常插入数字牌
 
-  for i, t in enumerate(hand): t.position = i    // 更新全部位置
+  hand = getPlayerHand(tiles, caller)
+  tile = hand.find(t => t.id === drawnTileId)
 
+  // 非 Joker 牌校验排序约束
+  if tile && !tile.isJoker:
+    leftTile = position > 0 ? hand[position-1] : null
+    rightTile = position < hand.length ? hand[position] : null
+    Assert: sortKey(leftTile) ≤ sortKey(tile) ≤ sortKey(rightTile)
+
+  // 执行插入
+  without = hand.filter(t => t.id !== drawnTileId)
+  without.splice(position, 0, tile)
+  without.forEach((t, i) => { t.position = i })
+
+  drawnTileId = null
   phase = 'guessing'
   turnLog.push({ turnNumber, playerOpenid: caller, action: 'insert', position })
 
-  return { hand: sanitizeOwnHand(hand), poolRemaining: |pool| }
+  return { hand: sanitizeOwnHand(hand) }
 ```
 
 ---
@@ -392,67 +437,102 @@ getGameState(gameId, callerOpenid) → {
 
 ## 7. AI 决策算法
 
+> ⚠️ **待持续优化**: 概率矩阵未跨回合持久化（当前每轮重新计算）；`shouldContinue` 信心评估未利用概率矩阵历史。
+>
+> **架构**: Medium/Hard 共享 `ai-common.evaluatePositions()`（seen表+否定+sortKey+空间约束+Joker推理）、`pickFallback()`（position感知兜底）、`shouldContinueWithProbs()`。各策略仅保留差异化逻辑：Medium=评分选best，Hard=概率矩阵+中位加权+argmax。否定追踪已升级为 **tile ID 绑定**（`makeGuess` 记录 `targetTileId`），位置偏移不再影响否定有效性。
+
 ### 7.1 难度概览
 
 ```
-EASY:   随机决策
-MEDIUM: 启发式 + 已见牌排除
-HARD:   概率矩阵推理
+EASY:   纯随机
+MEDIUM: sortKey 上下界 + (value,color) 精确排除 + 否定信息 + 空间约束
+HARD:   MEDIUM 全部逻辑 + 概率矩阵 P[opp][pos][val] + argmax 置信度
 ```
 
-### 7.2 简单 AI
+### 7.2 策略对比总表
+
+#### 摸牌选色 `pickColor`
+
+| | Easy | Medium | Hard |
+|---|------|--------|------|
+| 策略 | 有牌随机选 | 对手暗牌多的颜色优先（信息驱动） | **同 Medium** |
+| 动机 | 无脑 | 摸最不了解的颜色 | 同 Medium |
+
+#### 如何猜测 `pickGuess`
+
+| 维度 | Easy | Medium | Hard |
+|------|------|--------|------|
+| seen 表 | — | `seen[value][color]` 双色精确标记 | **同 Medium** |
+| 否定信息 | — | 历史猜错排除 + 对手猜测推断；仅在对手手牌未变动时生效 | **同 Medium** |
+| sortKey 上下界 | — | 左右已翻非Joker牌的 sortKey 边界 | **同 Medium** |
+| 空间约束 | — | nLeft/nRight 空位 + unseenJoker 缓冲 + 候选值上下方可用数过滤 | **同 Medium** |
+| Joker | 10% 猜 -1 | 无数可选+该色Joker未见+未否定 → 必然Joker；否则 10% 随机（含否定检查） | **同 Medium** |
+| 选目标 | 随机 | 优先有否定信息的位置；其次候选数最少；跳过空候选 | **同 Medium** → 构建 P → argmax(P) |
+| 额外层 | — | — | 候选值均分概率 → argmax 选最高置信度 |
+| 兜底 | — | position 感知 fallback（sortKey + bothSeen） | **同 Medium** |
 
 ```
-AI_EASY:
-  drawTile() → pos = random(0, |hand|) → insertTile(pos)
-  target = random(opponents)
-  pos = random(未翻牌位)
-  value = random({-1, 0..11})               // 10% 猜 Joker
-  makeGuess(target, pos, value)
-  pass()                                     // 猜 1 次后放弃
+Hard pickGuess 流程:
+  ①~④ 完全同 Medium (seen表 → 否定信息 → sortKey上下界 → 空间约束 → Joker推理)
+  ⑤ 候选值均分概率: P[opp][pos][v] = 1 / |possible|
+  ⑥ argmax(P) 选全局最高置信度的 (opp, pos, val)
+  ⑦ 兜底: position 感知 fallback
 ```
 
-### 7.3 中等 AI
+#### 猜对后是否继续 `shouldContinue`
+
+基于 `estimateConfidence(tiles, aiPlayer)` 扫描所有未翻牌位，返回最佳位置的候选数 `minCount`（1=100%确定）和对手暗牌总数 `totalUnrev`。
+
+| 条件 | Easy | Medium | Hard |
+|------|:---:|:------:|:---:|
+| minCount = 1（某位置 100% 确定） | — | **100% 必猜** | **100% 必猜** |
+| totalUnrev ≤ 2（终局冲胜） | — | **100%** | **100%** |
+| minCount = 2（2 选 1） | — | **90%** | 80% |
+| minCount = 3（3 选 1） | — | **80%** | 65% |
+| minCount ≥ 4（低置信度） | — | **65%** | 50% |
+| 随机基线 | 30% | — | — |
+| 连猜上限 | **无** | **无** | **无** |
+
+**设计原理**: Hard 比 Medium **更谨慎**。专家 AI 更懂风险控制——猜错会亮己牌，所以在不确定时见好就收；Medium 模拟普通人类玩家，猜对后容易"上头"继续猜。两者在终局（≤2 暗牌）和 100% 确定时都全力冲刺。
+
+> ⚠️ **待持续优化**: 当前 `estimateConfidence` 每轮独立计算，未利用 Hard 的概率矩阵历史。理想情况应跨回合持久化各位置的置信度，使 `shouldContinue` 在 Hard 中有更精准的依据。
+
+### 7.3 EASY — 纯随机
 
 ```
-AI_MEDIUM:
-  drawTile() → pos = findBestInsert(hand, tile)  // 启发式排序
-  insertTile(pos)
-
-  seenValues = ownHand ∪ allRevealedTiles
-  possibleValues = {0..11} \ seenValues          // 排除已见数字
-  (target, pos) = pickTarget(opponents)          // 优先选翻牌多的
-  value = pickMostLikely(possibleValues)
-  result = makeGuess(target, pos, value)
-
-  if result.isCorrect ∧ confidence > 0.5 → continueGuessing
-  else → pass
+pickColor(pool): 随机选有牌的颜色
+pickGuess(gs, aiPlayer): 随机目标 + 随机位置 + 随机值(10% Joker)
+shouldContinue: 30% 概率继续，无上限
 ```
 
-### 7.4 困难 AI（概率矩阵）
+### 7.4 MEDIUM — 启发式推理
 
 ```
-AI_HARD:
-  // 维护 P[opponent][position] = { value → probability }
-  // 初始化: 排除自己手牌和已翻牌后的均匀分布
+pickColor(pool, gs, aiPlayer):
+  统计对手未翻牌中各色数量 → 优先摸暗牌多的颜色
 
-  drawTile() → insertTile(findBestInsert(hand, tile))
+pickGuess(gs, aiPlayer):
+  ① seen[value][color] 精确排除 (自己的牌 + 已翻牌)
+  ② 否定信息收集 (历史猜错 + 对手猜测推断)，仅在对手手牌未变动时生效
+  ③ 每位置: sortKey 上下界 + nLeft/nRight 空间约束 + Joker 推理
+  ④ 优先有否定信息的位置，其次候选数最少
+  ⑤ 兜底: position 感知 fallback (sortKey 约束 + bothSeen)
 
-  updateProbabilityMatrix(P, gameState)       // 用最新信息更新
-  (target, pos, value) = argmax(P)     // 选最高置信度
-  result = makeGuess(target, pos, value)
+shouldContinue: 基于 estimateConfidence，比 Hard 更激进（90%/80%/65%）
+```
 
-  if result.isCorrect:
-    removePosition(P, target, pos)            // 位置确定
-    excludeTileFromAll(P, revealedTile)       // 该牌从所有候选移除
-  else:
-    P[target][pos][value] = 0        // 该组合不在该位置
-    normalize(P[target][pos])
-    excludeTileFromAll(P, myRevealedTile)
+### 7.5 HARD — Medium 全部逻辑 + 概率矩阵
 
-  confidence = max(P[target][pos])
-  if result.isCorrect ∧ confidence > 0.6 → continueGuessing
-  else → pass
+```
+pickColor: 同 Medium
+
+pickGuess(gs, aiPlayer):
+  ①~⑤ 完全同 Medium 推理 → 得到每位置候选值列表
+  ⑥ 候选值均分概率 → P[opp][pos][val] = 1/|possible|
+  ⑦ argmax(P) 选全局最高置信度
+
+shouldContinue: 基于 estimateConfidence，比 Medium 更谨慎（80%/65%/50%）
+                ⚠️ 未利用概率矩阵历史 (待优化)
 ```
 
 ---

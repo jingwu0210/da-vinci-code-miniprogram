@@ -11,6 +11,7 @@ exports.main = async (event, context) => {
 
   switch (event.type) {
     case 'createRoom':   return require('./handlers/createRoom')(event, caller, db);
+    case 'getRoom':      return require('./handlers/getRoom')(event, caller, db);
     case 'joinRoom':     return require('./handlers/joinRoom')(event, caller, db);
     case 'leaveRoom':    return require('./handlers/leaveRoom')(event, caller, db);
     case 'toggleReady':  return require('./handlers/toggleReady')(event, caller, db);

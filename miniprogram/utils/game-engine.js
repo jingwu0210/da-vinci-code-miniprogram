@@ -8,14 +8,10 @@ const { shuffle, createDeck, createShuffledDeck } = require('../utils/shuffle');
 const { sortKey, compare, sortHand } = require('../utils/sort-hand');
 const { Phase } = require('../common/enums');
 const {
-  createInitialState,
-  update,
-  drawFromPool,
-  poolRemaining,
-  getClientView,
-  findTileById,
-  countUnrevealed,
-  allOpponentsEliminated,
+  createInitialState, update,
+  drawFromPool, poolRemaining,
+  getPlayerHand, getClientView,
+  findTileById, countUnrevealed, allOpponentsEliminated,
 } = require('../model/entities/game-state');
 const { isGuessMatch, validateGuess } = require('./game/guess-handler');
 

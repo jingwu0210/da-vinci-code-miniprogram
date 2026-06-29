@@ -1,6 +1,5 @@
 /**
- * guess-panel —— 猜测操作板。
- * Props:  show, opponents, targetOpenid, targetPosition, color, value
+ * guess-panel —— 猜测操作板（仅数字网格 + 确认/撤销）。
  * Events: confirm → { targetOpenid, position, color, value }, cancel → {}
  */
 Component({
@@ -10,24 +9,38 @@ Component({
     targetOpenid:   { type: String, value: '' },
     targetPosition: { type: Number, value: 0 },
     color:          { type: String, value: 'black' },
-    value:          { type: Number, value: 0 },
   },
-  methods: {
-    onSelectColor(e) {
-      this.setData({ color: e.currentTarget.dataset.color });
+
+  data: {
+    numbers:      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, -1],
+    selectedValue: null,
+    targetName:   '',
+  },
+
+  observers: {
+    'targetOpenid, targetPosition, opponents': function(oid, pos, opponents) {
+      if (!oid || !opponents) return;
+      const opp = opponents.find(o => o.openid === oid);
+      this.setData({ targetName: opp ? (opp.nickName || '玩家') : '对手', selectedValue: null });
     },
+    'show': function(show) { if (!show) this.setData({ selectedValue: null }); },
+  },
+
+  methods: {
     onSelectValue(e) {
-      this.setData({ value: parseInt(e.currentTarget.dataset.value) });
+      this.setData({ selectedValue: parseInt(e.currentTarget.dataset.value) });
     },
     onConfirm() {
+      if (this.data.selectedValue === null) return;
       this.triggerEvent('confirm', {
         targetOpenid: this.properties.targetOpenid,
-        position:     this.properties.targetPosition,
-        color:        this.properties.color,
-        value:        this.properties.value,
+        position: this.properties.targetPosition,
+        color: this.properties.color,
+        value: this.data.selectedValue,
       });
     },
     onCancel() {
+      this.setData({ selectedValue: null });
       this.triggerEvent('cancel');
     },
   },

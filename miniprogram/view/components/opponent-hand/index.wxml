@@ -1,1 +1,24 @@
-<!-- opponent-hand -->
+<!-- opponent-hand: 对手手牌（暗牌+已翻开） -->
+<view class="opponent-section {{isCurrentTarget ? 'target-active' : ''}}">
+  <view class="opponent-label">
+    <text class="opponent-name">{{playerName || '玩家'}}</text>
+    <text class="opponent-status" wx:if="{{isCurrentTarget}}">· 猜测中</text>
+  </view>
+
+  <scroll-view class="opponent-scroll" scroll-x>
+    <view class="opponent-hand">
+      <block wx:for="{{tiles}}" wx:key="id">
+        <view wx:if="{{drawnTileId && item.id === drawnTileId}}" class="tile-spacer"></view>
+        <view class="tile-cell {{selectedPosition === item.position ? 'tile-targeted' : ''}}"
+              data-position="{{item.position}}" catchtap="onTileTap">
+          <game-tile tile="{{item}}" faceUp="{{item.isRevealed}}" size="medium"
+                     selected="{{selectedPosition === item.position}}"
+                     disabled="{{item.isRevealed}}" position="{{item.position}}" />
+        </view>
+      </block>
+      <block wx:if="{{tiles.length === 0}}">
+        <view class="empty-slot">-</view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

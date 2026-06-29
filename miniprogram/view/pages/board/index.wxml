@@ -1,1 +1,42 @@
-<!-- pages/board -->
+<!-- board: 游戏主界面 -->
+<view class="board-page">
+  <view class="top-bar">
+    <view class="top-left"><text class="turn-num">第{{game.turnNumber || 1}}回合</text></view>
+    <view class="top-right"><text class="top-btn quit-btn" catchtap="onTapQuit">⏏ 退出</text></view>
+  </view>
+
+  <view class="offline-banner" wx:if="{{offline}}"><text>网络已断开，正在重连...</text></view>
+
+  <scroll-view class="opponents-area" scroll-y>
+    <opponent-hand wx:for="{{opponents}}" wx:key="openid" id="opp-{{index}}" tiles="{{item.hand}}" drawnTileId="{{item.drawnTileId || ''}}" playerName="{{item.nickName || '对手'}}" playerOpenid="{{item.openid}}" interactive="{{game.myTurn && phase === 'guessing'}}" isCurrentTarget="{{guessTarget && guessTarget.openid === item.openid}}" bind:tileSelected="onOpponentTileSelected" />
+  </scroll-view>
+
+  <view class="board-divider"></view>
+
+  <view class="status-bar">
+    <text wx:if="{{!game.myTurn}}">等待对手行动中…</text>
+    <text wx:elif="{{phase === 'drawing' || phase === 'waiting'}}">请选择摸牌颜色</text>
+    <text wx:elif="{{phase === 'inserting'}}">请选择插入位置 ▲</text>
+    <text wx:elif="{{phase === 'guessing' && !guessTarget}}">请点击对手暗牌进行猜测</text>
+    <text wx:elif="{{phase === 'guessing' && guessTarget}}">选择数字并确认猜测</text>
+  </view>
+
+  <view class="self-area">
+    <player-hand tiles="{{myHand}}" isOwn="{{true}}" insertMode="{{game.myTurn && phase === 'inserting'}}" drawnTile="{{game.myDrawnTile}}" bind:positionSelected="onTapInsertSlot" />
+  </view>
+
+  <view class="action-area">
+    <view wx:if="{{game.myTurn && game.poolRemaining.total === 0 && (phase === 'drawing' || phase === 'waiting')}}" class="guess-hint"><text>牌池已空，请直接猜测</text></view>
+    <view wx:elif="{{game.myTurn && (phase === 'drawing' || phase === 'waiting')}}" class="draw-choices">
+      <view class="draw-btn" wx:if="{{game.poolRemaining.black > 0}}" data-color="black" catchtap="onSelectColor"><text class="draw-emoji">🖤</text><text class="draw-label">黑色</text><text class="draw-count">剩余 {{game.poolRemaining.black}} 张</text></view>
+      <view class="draw-btn draw-btn-disabled" wx:else><text class="draw-emoji">🖤</text><text class="draw-label">黑色</text><text class="draw-count">已空</text></view>
+      <view class="draw-btn" wx:if="{{game.poolRemaining.white > 0}}" data-color="white" catchtap="onSelectColor"><text class="draw-emoji">🤍</text><text class="draw-label">白色</text><text class="draw-count">剩余 {{game.poolRemaining.white}} 张</text></view>
+      <view class="draw-btn draw-btn-disabled" wx:else><text class="draw-emoji">🤍</text><text class="draw-label">白色</text><text class="draw-count">已空</text></view>
+    </view>
+    <view wx:if="{{game.myTurn && phase === 'guessing' && canEndTurn && !guessTarget}}" class="post-guess">
+      <button class="btn-continue" catchtap="onContinueGuessing">继续猜测</button>
+      <button class="btn-end-turn" catchtap="onTapPass">结束回合</button>
+    </view>
+    <guess-panel wx:if="{{game.myTurn && phase === 'guessing' && guessTarget}}" show="{{true}}" opponents="{{opponents}}" targetOpenid="{{guessTarget.openid}}" targetPosition="{{guessTarget.position}}" color="{{guessTarget.color}}" bind:confirm="onConfirmGuess" bind:cancel="onCancelGuess" />
+  </view>
+</view>

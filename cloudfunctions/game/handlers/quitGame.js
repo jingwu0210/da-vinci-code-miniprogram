@@ -9,64 +9,31 @@ module.exports = async function (event, caller, db) {
 
   try {
     const doc = await db.collection('games').doc(gameId).get();
-    if (!doc.data) return { success: false, error: 'GAME_NOT_FOUND', errorCode: 'GAME_NOT_FOUND' };
+    if (!doc.data) return { success: false, error: 'GAME_NOT_FOUND' };
     const gs = doc.data;
 
     // 翻开退出者的所有未翻牌
-    const hand = gs.hands[caller] || [];
-    hand.forEach(t => { t.isRevealed = true; });
-    gs.hands[caller] = hand;
-
-    // turnOrder 移除该玩家
+    gs.tiles = gs.tiles.map(t => t.owner === caller ? { ...t, isRevealed: true } : t);
     gs.turnOrder = gs.turnOrder.filter(oid => oid !== caller);
 
-    let winner = null;
-    let gameContinues = true;
-
+    let winner = null, gameContinues = true;
     if (gs.turnOrder.length <= 1) {
-      // 只剩 1 人 → 自动获胜
-      gs.status = 'finished';
-      gs.winner = gs.turnOrder[0] || null;
-      gs.phase = E.Phase.WAITING;
-      winner = gs.winner;
-      gameContinues = false;
+      gs.status = 'finished'; gs.winner = gs.turnOrder[0] || null;
+      gs.phase = E.Phase.WAITING; winner = gs.winner; gameContinues = false;
     } else {
-      // 继续游戏
       gs.turnIndex = gs.turnIndex % gs.turnOrder.length;
-      gs.drawnTileId = null;
-      gs.phase = E.Phase.WAITING;
+      gs.drawnTileId = null; gs.phase = E.Phase.WAITING;
     }
 
-    gs.turnLog.push({
-      turnNumber: gs.turnLog.length + 1,
-      playerOpenid: caller,
-      action: 'quit',
-      timestamp: new Date().toISOString(),
-    });
+    gs.turnLog.push({ turnNumber: gs.turnLog.length+1, playerOpenid: caller, action: 'quit', timestamp: new Date().toISOString() });
 
-    await db.collection('games').doc(gameId).update({
-      data: {
-        hands: gs.hands,
-        turnOrder: gs.turnOrder,
-        turnIndex: gs.turnIndex,
-        status: gs.status,
-        winner: gs.winner || null,
-        phase: gs.phase,
-        drawnTileId: null,
-        turnLog: gs.turnLog,
-        updatedAt: db.serverDate(),
-      },
-    });
+    await db.collection('games').doc(gameId).update({ data: {
+      tiles: gs.tiles, turnOrder: gs.turnOrder, turnIndex: gs.turnIndex,
+      status: gs.status, winner: gs.winner || null, phase: gs.phase,
+      drawnTileId: null, turnLog: gs.turnLog, updatedAt: db.serverDate(),
+    }});
 
-    return {
-      success: true,
-      data: {
-        quit: true,
-        remainingPlayers: gs.turnOrder.length,
-        gameContinues,
-        winner,
-      },
-    };
+    return { success: true, data: { quit: true, remainingPlayers: gs.turnOrder.length, gameContinues, winner }};
   } catch (e) {
     return { success: false, error: e.message || 'QUIT_FAILED' };
   }

@@ -18,6 +18,13 @@ module.exports = async function (event, caller, db) {
       exists = check.data.length > 0;
     }
 
+    const players = [{ openid: caller, nickName: '', avatarUrl: '', isReady: mode === 'ai', isAI: false, seatIndex: 0 }];
+
+    // AI 模式：自动添加 AI 玩家
+    if (mode === 'ai') {
+      players.push({ openid: `ai_${roomId}`, nickName: 'AI', avatarUrl: '', isReady: true, isAI: true, seatIndex: 1 });
+    }
+
     const room = {
       roomId,
       mode,
@@ -26,7 +33,7 @@ module.exports = async function (event, caller, db) {
       difficulty,
       creatorOpenid: caller,
       status: 'waiting',
-      players: [{ openid: caller, nickName: '', avatarUrl: '', isReady: false, isAI: false, seatIndex: 0 }],
+      players,
       createdAt: db.serverDate(),
       updatedAt: db.serverDate(),
     };

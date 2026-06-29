@@ -1,8 +1,5 @@
 /**
  * makeGuess ★ 核心 —— 猜测对手某张牌的数字。
- * 输入: { gameId, targetOpenid, position, value }
- * value = -1 表示猜 Joker，0~11 普通数字。
- * 颜色已由牌背可见，无需猜测。
  */
 const E = require('./_engine');
 
@@ -14,126 +11,110 @@ module.exports = async function (event, caller, db) {
 
   try {
     const doc = await db.collection('games').doc(gameId).get();
-    if (!doc.data) return { success: false, error: 'GAME_NOT_FOUND', errorCode: 'GAME_NOT_FOUND' };
+    if (!doc.data) return { success: false, error: 'GAME_NOT_FOUND' };
     const gs = doc.data;
 
-    if (gs.status !== 'playing') return { success: false, error: 'GAME_ALREADY_FINISHED', errorCode: 'GAME_ALREADY_FINISHED' };
-    if (gs.turnOrder[gs.turnIndex] !== caller) return { success: false, error: 'NOT_YOUR_TURN', errorCode: 'NOT_YOUR_TURN' };
-    if (gs.phase !== E.Phase.GUESSING) return { success: false, error: 'WRONG_PHASE', errorCode: 'WRONG_PHASE' };
-    if (targetOpenid === caller) return { success: false, error: 'INVALID_TARGET', errorCode: 'INVALID_TARGET' };
+    if (gs.status !== 'playing') return { success: false, error: 'GAME_ALREADY_FINISHED' };
+    if (gs.turnOrder[gs.turnIndex] !== caller) return { success: false, error: 'NOT_YOUR_TURN' };
+    if (gs.phase !== E.Phase.GUESSING) return { success: false, error: 'WRONG_PHASE' };
+    if (targetOpenid === caller) return { success: false, error: 'INVALID_TARGET' };
 
-    const targetHand = gs.hands[targetOpenid];
-    if (!targetHand) return { success: false, error: 'INVALID_TARGET', errorCode: 'INVALID_TARGET' };
-    if (position < 0 || position >= targetHand.length) return { success: false, error: 'INVALID_POSITION', errorCode: 'INVALID_POSITION' };
+    const targetHand = E.getPlayerHand(gs.tiles, targetOpenid);
+    if (!targetHand.length) return { success: false, error: 'INVALID_TARGET' };
+    if (position < 0 || position >= targetHand.length) return { success: false, error: 'INVALID_POSITION' };
 
     const targetTile = targetHand[position];
-    if (!targetTile) return { success: false, error: 'INVALID_POSITION', errorCode: 'INVALID_POSITION' };
-    if (targetTile.isRevealed) return { success: false, error: 'ALREADY_REVEALED', errorCode: 'ALREADY_REVEALED' };
+    if (!targetTile || targetTile.isRevealed) return { success: false, error: 'ALREADY_REVEALED' };
 
-    // ── 核心判定 ──
     const isCorrect = E.isGuessMatch({ value }, targetTile);
 
-    gs.turnLog.push({
-      turnNumber: gs.turnLog.length + 1,
-      playerOpenid: caller,
-      action: 'guess',
-      targetOpenid,
-      position,
-      guessedValue: value,
-      isCorrect,
-      timestamp: new Date().toISOString(),
-    });
+    gs.turnLog.push({ turnNumber: gs.turnLog.length+1, playerOpenid: caller, action: 'guess',
+      targetOpenid, position, guessedValue: value, isCorrect, targetColor: targetTile.color, targetTileId: targetTile.id, timestamp: new Date().toISOString() });
 
     if (isCorrect) {
       // 猜对：翻开对手牌
-      targetTile.isRevealed = true;
+      gs.tiles = gs.tiles.map(t => t.id === targetTile.id ? { ...t, isRevealed: true } : t);
 
-      if (E.allOpponentsEliminated(gs.hands, caller)) {
-        // 所有对手全部翻开 → 获胜
-        gs.status = 'finished';
-        gs.winner = caller;
-        gs.phase = E.Phase.WAITING;
-
-        await db.collection('games').doc(gameId).update({
-          data: {
-            hands: gs.hands,
-            status: gs.status,
-            winner: gs.winner,
-            phase: gs.phase,
-            turnLog: gs.turnLog,
-            updatedAt: db.serverDate(),
-          },
-        });
-
-        return {
-          success: true,
-          data: {
-            isCorrect: true,
-            revealedTile: E.toOpponentTile(targetTile),
-            gameOver: true,
-            winner: caller,
-            nextPhase: 'game_over',
-          },
-        };
+      if (E.allOpponentsEliminated(gs.tiles, caller)) {
+        gs.status = 'finished'; gs.winner = caller; gs.phase = E.Phase.WAITING;
+        await db.collection('games').doc(gameId).update({ data: {
+          tiles: gs.tiles, status: gs.status, winner: gs.winner, phase: gs.phase, turnLog: gs.turnLog, updatedAt: db.serverDate(),
+        }});
+        return { success: true, data: { isCorrect: true, revealedTile: E.toOpponentTile(targetTile), gameOver: true, winner: caller, nextPhase: 'game_over' }};
       }
 
-      // 还有对手未翻牌 → 可继续猜
-      await db.collection('games').doc(gameId).update({
-        data: {
-          hands: gs.hands,
-          turnLog: gs.turnLog,
-          updatedAt: db.serverDate(),
-        },
-      });
-
-      return {
-        success: true,
-        data: {
-          isCorrect: true,
-          revealedTile: E.toOpponentTile(targetTile),
-          gameOver: false,
-          nextPhase: E.Phase.GUESSING,
-        },
-      };
-    } else {
-      // 猜错：翻开自己摸的牌 → 回合结束
-      const myHand = gs.hands[caller] || [];
-      let myRevealedTile = null;
-      if (gs.drawnTileId) {
-        const dt = myHand.find(t => t.id === gs.drawnTileId);
-        if (dt) {
-          dt.isRevealed = true;
-          myRevealedTile = E.toSelfTile(dt);
-        }
-      }
-
-      gs.drawnTileId = null;
-      gs.phase = E.Phase.WAITING;
-      const nextIdx = (gs.turnIndex + 1) % gs.turnOrder.length;
-      gs.turnIndex = nextIdx;
-
-      await db.collection('games').doc(gameId).update({
-        data: {
-          hands: gs.hands,
-          phase: gs.phase,
-          turnIndex: gs.turnIndex,
-          drawnTileId: null,
-          turnLog: gs.turnLog,
-          updatedAt: db.serverDate(),
-        },
-      });
-
-      return {
-        success: true,
-        data: {
-          isCorrect: false,
-          myRevealedTile,
-          gameOver: false,
-          nextPhase: E.Phase.WAITING,
-          nextTurnOpenid: gs.turnOrder[nextIdx],
-        },
-      };
+      await db.collection('games').doc(gameId).update({ data: { tiles: gs.tiles, turnLog: gs.turnLog, updatedAt: db.serverDate() }});
+      return { success: true, data: { isCorrect: true, revealedTile: E.toOpponentTile(targetTile), gameOver: false, nextPhase: E.Phase.GUESSING }};
     }
+
+    // 猜错：翻开自己摸的牌（Joker 除外——先插入再翻开）
+    let myRevealedTile = null;
+    var isJokerDrawn = false;
+    if (gs.drawnTileId) {
+      var drawnTile = gs.tiles.find(t => t.id === gs.drawnTileId);
+      if (drawnTile && drawnTile.isJoker) {
+        isJokerDrawn = true;
+        // Joker: 先不翻开，标记待 insertTile 放置后翻开
+        gs.jokerPendingReveal = true;
+      } else if (gs.drawnTileId) {
+        gs.tiles = gs.tiles.map(t => {
+          if (t.id !== gs.drawnTileId) return t;
+          myRevealedTile = E.toSelfTile({ ...t, isRevealed: true });
+          return { ...t, isRevealed: true };
+        });
+      }
+    }
+
+    let nextPhase = E.Phase.WAITING, nextTurnIdx = gs.turnIndex;
+    if (gs.drawnTileId) {
+      const drawn = gs.tiles.find(t => t.id === gs.drawnTileId);
+      if (drawn && drawn.isJoker) {
+        nextPhase = E.Phase.INSERTING; // Joker: 用户自选位置
+      } else if (drawn) {
+        // 数字牌: 自动插入唯一正确位置
+        const hand = E.getPlayerHand(gs.tiles, caller);
+        const handWithout = hand.filter(function(t) { return t.id !== gs.drawnTileId; });
+        // 只对非 Joker 牌计算位置，避免 Joker 的 Infinity 干扰
+        var nonJoker = handWithout.filter(function(t) { return !t.isJoker; });
+        var njPos = nonJoker.length;
+        for (var i2 = 0; i2 <= nonJoker.length; i2++) {
+          var lOk = i2===0 || (E.sortKey(nonJoker[i2-1])[0] <= E.sortKey(drawn)[0] && (E.sortKey(nonJoker[i2-1])[0] !== E.sortKey(drawn)[0] || E.sortKey(nonJoker[i2-1])[1] <= E.sortKey(drawn)[1]));
+          var rOk = i2===nonJoker.length || (E.sortKey(drawn)[0] <= E.sortKey(nonJoker[i2])[0] && (E.sortKey(drawn)[0] !== E.sortKey(nonJoker[i2])[0] || E.sortKey(drawn)[1] <= E.sortKey(nonJoker[i2])[1]));
+          if (lOk && rOk) { njPos = i2; break; }
+        }
+        // 非 Joker 位置映射回完整手牌位置
+        var insertPos = 0, njCount = 0;
+        for (var i3 = 0; i3 < handWithout.length; i3++) {
+          if (njCount === njPos) { insertPos = i3; break; }
+          if (!handWithout[i3].isJoker) njCount++;
+          insertPos = i3 + 1;
+        }
+        const without = hand.filter(function(t) { return t.id !== gs.drawnTileId; });
+        without.splice(insertPos, 0, drawn);
+        without.forEach((t, i) => { t.position = i; });
+        gs.tiles = gs.tiles.map(t => {
+          const u = without.find(w => w.id === t.id);
+          return u || t;
+        });
+        gs.drawnTileId = null;
+        nextTurnIdx = (gs.turnIndex + 1) % gs.turnOrder.length;
+      }
+    } else {
+      nextTurnIdx = (gs.turnIndex + 1) % gs.turnOrder.length;
+    }
+
+    gs.phase = nextPhase;
+    gs.turnIndex = nextTurnIdx;
+
+    await db.collection('games').doc(gameId).update({ data: {
+      tiles: gs.tiles, phase: gs.phase, turnIndex: gs.turnIndex,
+      drawnTileId: gs.drawnTileId || null, jokerPendingReveal: gs.jokerPendingReveal || null, turnLog: gs.turnLog, updatedAt: db.serverDate(),
+    }});
+
+    return { success: true, data: {
+      isCorrect: false, myRevealedTile, gameOver: false,
+      nextPhase, nextTurnOpenid: gs.turnOrder[gs.turnIndex],
+    }};
   } catch (e) {
     return { success: false, error: e.message || 'GUESS_FAILED' };
   }

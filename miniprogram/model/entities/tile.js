@@ -66,6 +66,7 @@ function toSelfTile(tile) {
 function toOpponentTile(tile) {
   if (tile.isRevealed) {
     return {
+      id: tile.id,
       position:   tile.position,
       color:      tile.color,
       value:      tile.value,
@@ -73,8 +74,8 @@ function toOpponentTile(tile) {
       isRevealed: true,
     };
   }
-  // 未翻开：仅暴露位置和颜色（牌背与正面同色，颜色可见）
   return {
+    id: tile.id,
     position:   tile.position,
     color:      tile.color,
     isRevealed: false,

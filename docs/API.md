@@ -527,7 +527,7 @@ type: 'quitGame'
 
 ### 4.8 aiMove
 
-（仅 AI 模式）执行完整 AI 回合。
+（仅 AI 模式）执行完整 AI 回合。前端需为每个 action 播放对应的 toast/动画，最后调用 `getGameState` 刷新。
 
 ```
 type: 'aiMove'
@@ -541,32 +541,26 @@ type: 'aiMove'
 ■ 出参 (success):
 {
   actions: [{                        // AI 回合的动作序列（按时间顺序）
-    action:  'draw',                 // 摸牌
-    result:  { drawnTile: SelfTile | null, poolRemaining: Integer }
+    action: 'draw',                  // 摸牌
+    color:  'black' | 'white'
   }, {
-    action:  'insert',
-    result:  { position: Integer }   // AI 决定的位置
+    action: 'insert',                // 插牌
+    position: Integer
   }, {
-    action:  'guess',
-    result:  {
-      targetOpenid:   String,
-      position:        Integer,
-      guessedValue:    Integer,
-      isCorrect:       Boolean,
-      revealedTile?:   OpponentTile,
-      myRevealedTile?: SelfTile | null
-    }
+    action: 'guess',                 // 猜测
+    target:    String,               // 被猜对手 openid
+    position:  Integer,
+    value:     Integer,              // -1 猜 Joker，0~11 猜数字
+    isCorrect: Boolean
   },
-  // ... maybe more guesses + another pass
+  // ... 可能多轮 guess (猜对继续) + 最后 pass
   {
-    action:  'pass'
+    action: 'pass'
   }],
 
   // 最终状态
-  gameOver:         Boolean,
-  winner:           String | null,
-  nextPhase:        'waiting' | 'game_over',
-  nextTurnOpenid?:  String          // 回到玩家回合
+  gameOver: Boolean,
+  winner:   String | null            // gameOver=true 时
 }
 ```
 
@@ -686,25 +680,36 @@ type: 'getRecords'
   phase:      "drawing" | "inserting" | "guessing" | "waiting",
   winner:     String | null,
 
-  tilePool:   [Tile],              // 完整 Tile 对象，服务端持有
+  tiles:      [Tile],                // 所有 26 张牌，通过 tile.owner 区分归属
+                                     //   owner: 'pool' | openid
+                                     //   池牌: tiles.filter(t => t.owner === 'pool')
+                                     //   手牌: tiles.filter(t => t.owner === openid)
 
-  playerHands: {
-    "<openid>": [Tile],            // 完整 Tile 对象，服务端持有
-    ...
-  },
-
-  currentTurnOpenid: String,
-  turnOrder:          [String],    // openid 列表
+  turnOrder:          [String],      // openid 列表
+  turnIndex:          Integer,
   drawnTileId:        String | null,
-  maxTurnTime:        60000,       // ms
-  turnStartedAt:      ISODate,     // 当前回合开始时间戳
+
+  // Joker 初始摆放
+  initialJokers:      { [openid]: [tile_id] } | null,
+  initialJokerTurn:   Integer | null,
+  jokersToPlace:      [tile_id] | null,
+  originalTurnIndex:  Integer,
+
+  // Joker 猜错揭示
+  jokerPendingReveal: Boolean | null,
+
+  maxTurnTime:        60000,         // ms
 
   turnLog: [{
     turnNumber:    Integer,
     playerOpenid:  String,
     action:        "draw" | "insert" | "guess" | "pass" | "quit",
-    // 仅服务端存储完整日志，客户端仅接收摘要
-    detail:        Object,         // 按 action 类型不同
+    // 按 action 类型不同
+    targetOpenid?: String,
+    position?:     Integer,
+    guessedValue?: Integer,
+    isCorrect?:    Boolean,
+    targetColor?:  String,
     timestamp:     ISODate
   }],
 

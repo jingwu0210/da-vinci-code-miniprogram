@@ -55,11 +55,18 @@
 
 每个回合包含两步：
 
-**第一步 — 摸牌**：从桌面暗牌中任选一张摸入手中，按排序规则插入手牌序列
+**第一步 — 摸牌**：从桌面暗牌中选黑/白一种颜色，摸一张。牌出现在手牌末尾（间隔显示，正面朝上可见数字），**暂不插入排序序列**。
 
-**第二步 — 猜测**：选择一位对手，指其某张牌并猜数字
-- ✅ **猜对**：对手翻开该牌。可继续猜（同对手或换人）或见好就收
-- ❌ **猜错**：自己刚摸入的新牌翻开展示，回合结束
+**第二步 — 猜测**：选择一位对手，指其某张暗牌并猜数字（牌背颜色可见，无需猜色）
+- ✅ **猜对**：对手翻开该牌（推倒动画）。可 [继续猜测] 或 [结束回合]
+- ❌ **猜错**：
+  - 数字牌 → 自动插入唯一正确排序位置 + 亮牌展示 → 回合结束
+  - 万能牌(Joker) → 手动选择插入位置 + 亮牌展示 → 回合结束
+
+**结束回合（猜对后主动）**：
+- 数字牌 → 自动插入正确排序位置（**不亮牌**）
+- 万能牌 → 自动插入末尾（**不亮牌**）
+- 回合结束 → 等下一玩家
 
 ### 2.4 胜负判定
 
@@ -255,12 +262,13 @@
 #### 游戏阶段状态机
 
 ```
-WAITING ──→ DRAWING ──→ INSERTING ──→ GUESSING
-   ▲                                        │
-   │                 ┌─ 猜对继续 ────────────┤
-   │                 │                      │
-   └─ 猜错 / 放弃 ←─┘                      │
-                                    GAME_OVER
+WAITING ──→ DRAWING ──→ GUESSING  ←──┐
+   ▲                      │          │
+   │         猜对·继续 ────┘          │
+   │         猜错/结束回合 ───────────┘
+   │         万能牌猜错 ──→ INSERTING（手动选位）→ WAITING
+   │
+   └── 初始 Joker 摆放: INSERTING → INSERTING → ... → DRAWING
 ```
 
 **页面状态**：`loading` / `waiting` / `drawing` / `inserting` / `guessing` / `gameOver` / `offline` / `error`
@@ -293,19 +301,32 @@ WAITING ──→ DRAWING ──→ INSERTING ──→ GUESSING
   [      结束回合      ]
 ```
 
-#### 关键交互流程
+#### 回合流程（当前实现）
 
-1. **摸牌** → `game.drawTile` → 牌出现在手中
-2. **插入** → 点间隙槽 → `game.insertTile(position)` → 手牌重排
-3. **猜测** → 点对手暗牌 → 选数字/Joker → `game.makeGuess`
-4. **猜对**：对手牌**推倒动画**（900ms 麻将式三段动画）→ 可继续猜
-5. **猜错**：自己摸的牌翻开 → 回合结束 → 等下一玩家
-6. **🏠 返回大厅**：确认弹窗"确定返回？对局保留 5 分钟" → `navigateTo lobby`
-7. **⏏ 退出本局**：确认弹窗"退出将判负" → `game.quitGame` → `redirectTo lobby`
+1. **摸牌** → `game.drawTile(color)` → 牌出现在手牌末尾（间隔显示，正面朝上）
+2. **猜测** → 点对手暗牌（金色边框选中） → 选数字/Joker → `game.makeGuess`
+3. **猜对**：
+   - 对手牌播放**推倒动画**（1.0s，站→倒→站，数字浮现）
+   - 底部显示 [继续猜测] [结束回合] 两按钮
+   - 继续猜测 → 回到步骤 2；结束回合 → 步骤 4
+4. **猜错**：
+   - 数字牌 → 自动插入唯一正确排序位置 + 推倒动画（亮牌，无数字浮现）
+   - 万能牌 → 显示 ▲ 三角引导用户手动选位 + 推倒动画
+   - 回合结束 → 等下一玩家
+5. **结束回合（猜对后主动）**：
+   - 数字牌 → 自动插入正确位置（不亮牌）
+   - 万能牌 → 自动插入末尾（不亮牌）
+   - 回合结束 → 等下一玩家
+6. **⏏ 退出本局**：确认弹窗"退出将判负" → `game.quitGame` → `redirectTo lobby`
+
+#### 回合引导
+
+- 状态栏显示当前环节：**"等待对手行动中…" / "请选择摸牌颜色" / "请点击对手暗牌进行猜测"**
+- 非己回合对手牌不可点击（无金色边框高亮）
 
 #### AI 回合
 
-`game.aiMove` → 云函数返回动作序列 → 前端按 800ms 间隔播放动画
+AI 自动执行完整回合：摸牌 → 猜测（可能连续多轮）→ pass。前端多次调用 `aiMove` 逐步推进，每次返回一个 action（draw/guess/pass），间隔 ~800ms 播放动画。回合结束后自动流转回玩家。
 
 #### 实时同步（数据库 watch）
 
@@ -365,63 +386,60 @@ WAITING ──→ DRAWING ──→ INSERTING ──→ GUESSING
 
 ## 6. 游戏核心动画设计
 
-### 麻将式推倒翻牌 ★
+### 麻将式推倒翻牌 ★ 三段式动画
 
-猜对对手牌时，牌呈现类似**麻将牌被推倒**的三段式动画，总时长约 900ms。这是游戏体验核心亮点。
+牌被翻开时，呈现类似**麻将牌被推倒**的三段式动画，总时长约 1000ms。
 
 ```
 时间轴 ──────────────────────────────────────►
-  0ms           350ms           650ms    900ms
+  0ms           300ms           650ms    1000ms
   │               │                │        │
   阶段一：晃动    阶段二：推倒      阶段三：落定
   sway           push-over        settle
 ```
 
-#### 阶段一：晃动（0~350ms）
+#### 阶段一：晃动（0~300ms）
 
-牌被"点到"后轻微左右晃动，表示被触碰。
+牌被猜中后轻微左右晃动，表示被触碰。
 
-- `rotate`: 0° → ±8° → ±5° → 0°，晃动 3 次幅度递减
+- `rotate`: 0° → ±5° → ±3° → 0°，晃动 2~3 次幅度递减
 - 牌边框金色发光 + 底部阴影加深
-- `wx.vibrateShort({ type: 'light' })` × 1
-- 实现：`wx.createAnimation()` 操作 `rotate` + `translateY`
 
-#### 阶段二：推倒（350~650ms）
+#### 阶段二：推倒（300~650ms）
 
 核心——牌从竖立倒下，背面渐隐，正面数字浮现。
 
-- `scaleY`: 1.0 → 0.08（高度急剧缩小 = "倒下"）
-- `scaleX`: 1.0 → 1.15（宽度略增 = "摊开"）
-- `translateY`: 0 → +牌高×0.4（向下位移，模拟倒向桌面）
-- Timing：`cubic-bezier(0.4, 0.0, 0.2, 1)`（先慢后快，重力感）
-- 牌面从模糊到清晰，数字+颜色渐显
-- `wx.vibrateShort({ type: 'medium' })` × 1 + `tile_flip.mp3`
-- 实现：**Canvas 2D 逐帧绘制梯形**模拟透视（小程序不支持 CSS 3D）
+- `scaleY`: 1.0 → 0.06（高度急剧缩小 = "倒下"）
+- `scaleX`: 1.0 → 1.18（宽度略增 = "摊开"）
+- `opacity`: 1 → 0.5（背面渐隐）
+- Timing：`ease-in`（先慢后快，重力感）
 
-> Canvas 逐帧要点：每帧在牌底部中心为旋转点画梯形（顶部收缩 = 模拟倾斜），预渲染纹理 `drawImage` 直接贴图，16.7ms 帧预算。
+#### 阶段二 推倒过程中逐步显现数字（300~650ms）
 
-#### 阶段三：落定（650~900ms）
+- `scaleY`: 1.0 → 0.08，`scaleX`: 1.0 → 1.2（倒下摊开）
+- 对手牌：`reveal-number` 动画控制 `.tile-value` 透明度 0→1，数字在推倒过程中逐步浮现
+- 自己牌：数字已显示，仅播放推倒效果
 
-- 牌面微弹（scaleY: 0.08→0.12→稳定）
-- 金色光晕从左向右扫过牌面
-- 牌面清晰展示数字+颜色，对手牌位浮现 ✅ 标记
-- `guess_correct.mp3`，不振动
+> 无阶段三弹回落定 —— 动画直接在 100% 回到 `scaleY(1)`，牌面数字已清晰可见
 
-#### 性能保障
+#### 两种翻牌
 
-| 措施 | 说明 |
-|------|------|
-| 纹理预渲染 | 牌面正/反面在离屏 Canvas 预绘为 Image，动画时直接 `drawImage` |
-| 帧预算 | 每帧仅清画布→贴图→梯形变形→提交，< 5ms |
-| Canvas 尺寸 | 单牌 Canvas 200×300px |
-| 降级 | 低端机自动降为 CSS `scaleY` 简化版（跳过梯形透视） |
-| 多牌错开 | 一次猜对多张时每张间隔 300ms 启动 |
+| 场景 | 动画 | 数字浮现 |
+|------|:---:|:---:|
+| **对手牌被猜中** | 三段式推倒 | ✅ 正面数字浮现（从 ≤ 变为数字） |
+| **自己牌被猜错 / pass** | 三段式推倒 | ❌ 无数字浮现（玩家已知自己牌面） |
+
+#### 触发条件
+
+- 仅 `tile.isRevealed === true` 时触发（`.was-revealed` 类）
+- 摸牌时 `faceUp=true` 但 `isRevealed=false`，**不触发**动画
 
 #### 动画衔接
 
 ```
-猜对：确认弹窗(300ms) → 点击"继续" → 推倒动画(900ms) → 面板恢复
-猜错：确认弹窗(200ms) → 己牌翻开简化版(400ms) → 回合结束 → waiting
+猜对：对手牌推倒动画(1.0s) → 底部 [继续猜测] [结束回合]
+猜错：己牌推倒动画(1.0s) + 自动/手动插入 → 回合结束 → waiting
+结束回合：己牌不亮，自动插入 → 回合结束 → waiting
 ```
 
 ---
@@ -468,10 +486,12 @@ WAITING ──→ DRAWING ──→ INSERTING ──→ GUESSING
 
 ### `games`
 ```js
-{ roomId, status, currentTurnOpenid, phase, winner?,
-  tilePool: [{ id, color, value, isJoker }],
-  playerHands: { [openid]: [{ id, color, value, isJoker, position, isRevealed }] },
-  currentTurnDrawnTile?, turnOrder, turnLog }
+{ roomId, mode, difficulty, status, phase, winner?,
+  tiles: [{ id, color, value, isJoker, owner: 'pool' | openid, position, isRevealed }],
+  turnOrder, turnIndex, drawnTileId?,
+  initialJokers?, initialJokerTurn?, jokersToPlace?, originalTurnIndex?,
+  jokerPendingReveal?,
+  turnLog: [{ turnNumber, playerOpenid, action, targetOpenid?, position?, guessedValue?, isCorrect?, targetColor?, timestamp }] }
 ```
 
 ### `players`
@@ -502,14 +522,15 @@ WAITING ──→ DRAWING ──→ INSERTING ──→ GUESSING
 
 ### `game` 核心契约
 
-- **`initGame`**：创建 26 张牌 → 洗牌 → 发牌 → 每人排序 → 写入 games
-- **`drawTile`**：校验回合/阶段+颜色池非空 → 返回摸到的牌（玩家选择黑/白）
-- **`insertTile`**：校验合法位置 → 插入手牌序列 → 进入 guessing 阶段
-- **`makeGuess`**：校验目标+数字（牌背底色可见，无需猜色；Joker 猜值=-1）→ 猜对翻开/猜错亮己 → 检查胜负
-- **`aiMove`**：根据 difficulty 执行完整 AI 回合
-- **`quitGame`**：判定当前玩家负方，回合自动跳过
+- **`initGame`**：创建 26 张牌 → 洗牌 → 发牌（`tiles[]` + `owner` 字段）→ 收集初始 Joker → 如需摆放则进入 INSERTING，否则进入 DRAWING
+- **`drawTile`**：校验回合/阶段+颜色池非空 → 摸牌 → owner 变更 → 牌出现在手牌末尾（正面朝上），phase 直接进入 GUESSING
+- **`insertTile`**：三重用途：①初始 Joker 摆放 ②猜错 Joker 后手动选位+亮牌 ③正常插入（数字牌自动找位）。含排序约束校验
+- **`makeGuess`**：校验目标+数字（牌背底色可见，无需猜色；Joker 猜值=-1）→ 猜对翻开对手牌/猜错亮己牌（数字牌自动插入、Joker 进入 INSERTING 手动放置）→ 检查胜负
+- **`passTurn`**：结束回合。`reveal=true`（默认/猜错）亮摸牌+自动插入→切回合；`reveal=false`（猜对主动结束）不亮牌→切回合
+- **`aiMove`**：按 difficulty 策略单步执行（摸牌→猜测→pass），前端多次调用以推进 AI 完整回合
+- **`quitGame`**：退出者全部亮牌 → 判负 → 若剩 1 人则该玩家获胜
 
-**AI 策略**：简单（随机）、中等（排除法）、困难（概率矩阵推理，维护每位置可能值集）
+**AI 策略**：简单（随机）、中等（sortKey 上下界 + (value,color) 精确排除 + 否定信息 + 空间约束）、困难（概率矩阵推理 P[opp][pos][val] + argmax 置信度）
 
 ---
 

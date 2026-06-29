@@ -8,7 +8,6 @@ const store = require('../../../common/store');
 const AuthService = require('../../../service/auth/auth-service');
 const { showToast, showConfirm } = require('../../../common/modal-helper');
 const { ROUTES } = require('../../../common/routes');
-const store = require('../../../common/store');
 const local = require('../../../utils/local-storage');
 
 Page({

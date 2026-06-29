@@ -1,1 +1,113 @@
-/* game-tile */
+/* game-tile: 实体多米诺牌风格 */
+
+/* === 尺寸 === */
+.tile-wrapper {
+  position: relative; display: inline-flex; flex-shrink: 0;
+  filter: drop-shadow(0 4rpx 8rpx rgba(0,0,0,0.35));
+}
+.size-large  { width: 96rpx;  height: 192rpx; }
+.size-medium { width: 80rpx;  height: 160rpx; }
+.size-small  { width: 64rpx;  height: 128rpx; }
+
+/* === 3D 厚度（更明显） === */
+.tile-thickness {
+  position: absolute; bottom: -6rpx; right: -6rpx; width: 100%; height: 100%;
+  border-radius: 6rpx; z-index: 0;
+}
+.thick-black { background: #0A0A0E; }
+.thick-white { background: #C8C8BE; }
+
+/* === 主体 === */
+.tile-inner {
+  position: relative; width: 100%; height: 100%; border-radius: 6rpx;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow: visible; z-index: 1; box-sizing: border-box;
+}
+.tile-black {
+  background: linear-gradient(135deg, #2A2A30 0%, #1A1A1E 40%, #141418 100%);
+  border: 0.5rpx solid rgba(255,255,255,0.08);
+}
+.tile-white {
+  background: linear-gradient(135deg, #F5F5EE 0%, #EBEBE5 40%, #DEDED6 100%);
+  border: 0.5rpx solid rgba(0,0,0,0.06);
+}
+
+/* 顶部高光 */
+.tile-shine {
+  position: absolute; top: 0; left: 0; right: 0; height: 35%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%); pointer-events: none;
+}
+
+/* 内边框 — 模拟实体牌边缘 */
+.tile-inner::after {
+  content: ''; position: absolute; inset: 4rpx; border-radius: 4rpx;
+  border: 1rpx solid rgba(255,255,255,0.04); pointer-events: none; z-index: 0;
+}
+.tile-white::after { border-color: rgba(0,0,0,0.04); }
+
+/* === 正面数字 === */
+.tile-value {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2;
+  text-shadow: 0 1rpx 2rpx rgba(0,0,0,0.2);
+}
+.num-underline { width: 28rpx; height: 3rpx; margin-top: 4rpx; border-radius: 1rpx; }
+.ul-dark  { background: var(--text-on-black); opacity: 0.6; }
+.ul-light { background: var(--text-on-white); opacity: 0.5; }
+.val-dark { color: #F0F0E8; }
+.val-light { color: #1A1A1E; }
+.number-text { font-family: 'Courier New', 'SF Mono', monospace; font-weight: 700; line-height: 1; }
+.joker-text  { font-family: 'Courier New', 'SF Mono', monospace; font-weight: 700; color: var(--gold); line-height: 1; }
+.size-large  .number-text { font-size: 56rpx; }
+.size-medium .number-text { font-size: 46rpx; }
+.size-small  .number-text { font-size: 36rpx; }
+.size-large  .joker-text  { font-size: 40rpx; }
+.size-medium .joker-text  { font-size: 32rpx; }
+.size-small  .joker-text  { font-size: 26rpx; }
+
+/* === 背面 === */
+.tile-back { display: flex; align-items: center; justify-content: center; z-index: 2; }
+.back-symbol { font-weight: 300; line-height: 1; opacity: 0.5; }
+.back-dark  { color: #5A5A60; }
+.back-light { color: #A0A098; }
+.size-large  .back-symbol { font-size: 48rpx; }
+.size-medium .back-symbol { font-size: 38rpx; }
+.size-small  .back-symbol { font-size: 30rpx; }
+
+/* === 状态 === */
+.tile-wrapper.selected .tile-inner {
+  border: 2rpx solid var(--gold);
+  box-shadow: 0 0 20rpx rgba(158,140,108,0.6);
+  transform: translateY(-8rpx);
+}
+.tile-wrapper.disabled { opacity: 0.3; pointer-events: none; }
+.tile-wrapper.drawn {
+  transform: translateY(-24rpx);
+  filter: drop-shadow(0 8rpx 28rpx rgba(158,140,108,0.4));
+}
+
+/* 已翻开标记 */
+.revealed-mark {
+  position: absolute; top: -6rpx; right: -6rpx;
+  width: 32rpx; height: 32rpx; border-radius: 50%;
+  background: #4A7C59; color: #fff;
+  font-size: 20rpx; font-weight: 700; line-height: 32rpx; text-align: center;
+  z-index: 30;
+}
+
+/* === 浮现数字层 === */
+.reveal-overlay {
+  display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  flex-direction: column; align-items: center; justify-content: center; z-index: 20; border-radius: 6rpx;
+  font-family: 'Courier New', 'SF Mono', monospace; font-weight: 700;
+}
+.reveal-overlay.show { display: flex; }
+.overlay-dark  { background: rgba(20,20,24,0.92); color: #F0F0E8; }
+.overlay-light { background: rgba(235,235,229,0.92); color: #1A1A1E; }
+.ov-num { line-height: 1; }
+.size-large  .ov-num { font-size: 56rpx; }
+.size-medium .ov-num { font-size: 46rpx; }
+.size-small  .ov-num { font-size: 36rpx; }
+.ov-joker { color: var(--gold); line-height: 1; }
+.size-large  .ov-joker { font-size: 40rpx; }
+.size-medium .ov-joker { font-size: 32rpx; }
+.size-small  .ov-joker { font-size: 26rpx; }

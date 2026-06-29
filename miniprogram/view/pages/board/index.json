@@ -1,1 +1,8 @@
-{}
+{
+  "usingComponents": {
+    "game-tile": "../../components/game-tile/index",
+    "player-hand": "../../components/player-hand/index",
+    "opponent-hand": "../../components/opponent-hand/index",
+    "guess-panel": "../../components/guess-panel/index"
+  }
+}

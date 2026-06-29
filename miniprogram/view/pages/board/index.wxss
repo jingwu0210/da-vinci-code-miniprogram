@@ -1,1 +1,109 @@
-/* pages/board */
+/* board: 游戏主界面 */
+
+@import '../../../common/theme.wxss';
+
+.board-page {
+  display: flex; flex-direction: column;
+  height: 100vh; background: var(--felt);
+  overflow: hidden;
+}
+
+/* === 顶部栏 === */
+.top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 var(--sp-md); height: 80rpx; flex-shrink: 0;
+  border-bottom: 1rpx solid var(--divider);
+}
+.top-left  { display: flex; align-items: center; gap: var(--sp-sm); }
+.turn-num  { font-size: var(--fs-body); color: var(--text-primary); font-weight: 500; }
+.top-right { display: flex; gap: var(--sp-md); }
+.top-btn   { font-size: var(--fs-caption); color: var(--text-secondary); }
+.quit-btn  { color: var(--error); }
+
+/* === 离线横幅 === */
+.offline-banner {
+  background: var(--error); color: var(--text-primary);
+  text-align: center; padding: var(--sp-xs) 0;
+  font-size: var(--fs-caption); flex-shrink: 0;
+}
+
+/* === 对手区域 === */
+.opponents-area {
+  flex: 1; padding: var(--sp-xs) 0; overflow-y: auto;
+}
+
+/* === 分隔线 === */
+.board-divider {
+  height: 2rpx; background: var(--divider);
+  margin: 0 var(--sp-md); flex-shrink: 0;
+}
+
+/* === 状态引导条 === */
+.status-bar {
+  text-align: center; padding: 12rpx 0; flex-shrink: 0;
+  font-size: var(--fs-caption); color: var(--text-secondary);
+  background: rgba(0,0,0,0.15);
+}
+
+/* === 自己手牌 === */
+.self-area {
+  padding: var(--sp-sm) var(--sp-md); flex-shrink: 0;
+}
+
+/* === 操作区 === */
+.action-area {
+  flex-shrink: 0;
+  padding: var(--sp-sm) var(--sp-md) calc(env(safe-area-inset-bottom, 0) + var(--sp-sm));
+}
+
+.waiting-hint {
+  text-align: center; font-size: var(--fs-body);
+  color: var(--text-secondary); padding: var(--sp-lg) 0;
+}
+
+/* === 摸牌按钮 === */
+.draw-choices { display: flex; gap: var(--sp-md); }
+
+.draw-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 140rpx;
+  background: var(--panel-bg); border: 1rpx solid var(--divider);
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
+}
+.draw-btn:active { background: rgba(235,235,229,0.12); }
+.draw-btn-disabled { opacity: 0.3; pointer-events: none; }
+
+.draw-emoji { font-size: 40rpx; line-height: 1; }
+.draw-label { font-size: var(--fs-body); color: var(--text-primary); font-weight: 500; margin-top: 4rpx; }
+.draw-count { font-size: var(--fs-caption); color: var(--text-secondary); margin-top: 4rpx; }
+
+/* === 插牌提示 === */
+.insert-hint {
+  text-align: center; font-size: var(--fs-body);
+  color: var(--insert-gold); padding: var(--sp-lg) 0;
+}
+
+/* === 猜测提示（未选目标）=== */
+.guess-hint {
+  text-align: center; font-size: var(--fs-body);
+  color: var(--gold); padding: var(--sp-lg) 0;
+}
+
+/* === 猜对后操作 === */
+.post-guess {
+  display: flex; gap: var(--sp-md); padding: var(--sp-md) var(--sp-lg);
+}
+.btn-continue {
+  flex: 1; height: 88rpx; line-height: 88rpx; text-align: center;
+  background: rgba(74,124,89,0.15); color: var(--correct);
+  border: 1rpx solid var(--correct); border-radius: var(--radius-sm);
+  font-size: var(--fs-body);
+}
+.btn-end-turn {
+  flex: 1; height: 88rpx; line-height: 88rpx; text-align: center;
+  background: rgba(235,235,229,0.06); color: var(--text-primary);
+  border: 1rpx solid var(--divider); border-radius: var(--radius-sm);
+  font-size: var(--fs-body);
+}

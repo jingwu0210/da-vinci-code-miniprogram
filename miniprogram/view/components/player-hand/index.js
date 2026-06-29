@@ -3,6 +3,8 @@
  * Props:  tiles, isOwn, interactive, insertMode, drawnTile
  * Events: positionSelected → { position }
  */
+const { findValidInsertPositions } = require('../../../utils/sort-hand');
+
 Component({
   properties: {
     tiles:       { type: Array, value: [] },
@@ -11,10 +13,27 @@ Component({
     insertMode:  { type: Boolean, value: false },
     drawnTile:   { type: Object, value: null },
   },
+
+  data: {
+    validPositions: [],
+  },
+
+  observers: {
+    'tiles, drawnTile, insertMode': function(tiles, drawnTile, insertMode) {
+      if (insertMode && drawnTile) {
+        const positions = findValidInsertPositions(tiles, drawnTile);
+        this.setData({ validPositions: positions });
+      } else {
+        this.setData({ validPositions: [] });
+      }
+    },
+  },
+
   methods: {
     onSlotTap(e) {
       if (!this.properties.insertMode) return;
-      this.triggerEvent('positionSelected', { position: e.currentTarget.dataset.position });
+      const pos = Number(e.currentTarget.dataset.position);
+      this.triggerEvent('positionSelected', { position: pos });
     },
   },
 });

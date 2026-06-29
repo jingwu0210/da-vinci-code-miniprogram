@@ -15,13 +15,6 @@ page {
   --divider:           #3E4A58;
   --panel-bg:          rgba(44,58,74,0.95);
 
-  /* === 明亮主题 === */
-  --bg-light:          #F5F5F0;
-  --text-light-primary:#1A1A1E;
-  --text-light-secondary: #8A8A90;
-  --divider-light:     rgba(0,0,0,0.08);
-  --panel-light:       #FFFFFF;
-
   /* === 功能色 === */
   --correct:           #4A7C59;
   --error:             #8B4A4A;
@@ -48,10 +41,18 @@ page {
   --radius-md:  12rpx;
   --radius-lg:  16rpx;
 
-  /* === 牌体 === */
-  --tile-ratio:    2;            /* 2:1 宽高比 */
-  --tile-radius:   4rpx;
-  --tile-gap:      8rpx;
+  /* === 牌体 (1:2 竖立) === */
+  --tile-ratio:      2;            /* 高/宽比，2 = 1:2 竖立 */
+  --tile-radius:     4rpx;
+  --tile-gap:        8rpx;
+  --tile-thickness:  4rpx;         /* 3D 厚度偏移 */
+  --tile-shadow:     rgba(0,0,0,0.4);
+  --tile-highlight:  rgba(255,255,255,0.06);
+
+  /* === 面板/卡片 === */
+  --panel-bg:         rgba(235,235,229,0.06);
+  --panel-border:     rgba(235,235,229,0.08);
+  --insert-gold:      #9E8C6C;      /* 插入指示三角色 */
 
   /* === 基础样式 === */
   background-color: var(--felt);

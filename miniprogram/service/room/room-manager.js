@@ -15,6 +15,12 @@ const RoomManager = {
     return resp.data.room;
   },
 
+  async getRoom(roomId) {
+    const resp = await RoomCall.getRoom(roomId);
+    this._handleError(resp);
+    return resp.data.room;
+  },
+
   async joinRoom(roomId, password) {
     const resp = await RoomCall.joinRoom(roomId, password);
     this._handleError(resp);

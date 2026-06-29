@@ -1,1 +1,22 @@
-<!-- player-hand -->
+<!-- player-hand: 自己的手牌 + 插入三角 + 浮牌 -->
+<view class="player-hand">
+  <scroll-view class="hand-scroll" scroll-x scroll-into-view="{{drawnTile ? 'drawn-end' : ''}}" scroll-with-animation>
+    <view class="hand-row">
+      <block wx:for="{{tiles}}" wx:key="id">
+        <view wx:if="{{insertMode && validPositions.indexOf(index) !== -1}}"
+              class="insert-slot" data-position="{{index}}" catchtap="onSlotTap">
+          <text class="slot-arrow">▲</text>
+        </view>
+        <game-tile tile="{{item}}" faceUp="{{true}}" size="large" selected="{{false}}" position="{{item.position}}" />
+      </block>
+      <view wx:if="{{insertMode && validPositions.indexOf(tiles.length) !== -1}}"
+            class="insert-slot" data-position="{{tiles.length}}" catchtap="onSlotTap">
+        <text class="slot-arrow">▲</text>
+      </view>
+      <view id="drawn-end" style="width:1rpx;height:1rpx;flex-shrink:0;"></view>
+      <view class="drawn-area" wx:if="{{drawnTile}}">
+        <game-tile tile="{{drawnTile}}" faceUp="{{true}}" size="large" drawn="{{true}}" position="{{drawnTile.position}}" />
+      </view>
+    </view>
+  </scroll-view>
+</view>

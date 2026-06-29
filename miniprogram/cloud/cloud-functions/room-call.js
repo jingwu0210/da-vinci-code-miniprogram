@@ -21,6 +21,7 @@ async function call(type, data = {}) {
 
 module.exports = {
   createRoom:   (data) => call('createRoom', data),
+  getRoom:      (roomId) => call('getRoom', { roomId }),
   joinRoom:     (roomId, password) => call('joinRoom', { roomId, password }),
   leaveRoom:    (roomId) => call('leaveRoom', { roomId }),
   toggleReady:  (roomId, isReady) => call('toggleReady', { roomId, isReady }),

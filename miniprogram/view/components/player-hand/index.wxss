@@ -1,1 +1,35 @@
-/* player-hand */
+/* player-hand: 手牌排列 + 插入三角 */
+
+.player-hand {
+  display: flex; align-items: center;
+  padding: var(--sp-sm) 0;
+}
+
+.hand-scroll {
+  width: 100%; height: 220rpx;
+  white-space: nowrap;
+}
+
+.hand-row {
+  display: inline-flex; align-items: center; gap: var(--tile-gap);
+  height: 220rpx;
+}
+
+.insert-slot {
+  display: inline-flex; align-items: flex-end; justify-content: center;
+  height: 192rpx; width: 32rpx; flex-shrink: 0;
+  cursor: pointer; padding-bottom: 8rpx; box-sizing: border-box;
+}
+
+.slot-arrow {
+  font-size: 28rpx; color: var(--insert-gold); line-height: 1;
+  animation: pulse-opacity 1.5s ease-in-out infinite;
+}
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+.drawn-area {
+  margin-left: var(--sp-xl);
+}

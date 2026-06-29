@@ -1,1 +1,33 @@
-<!-- game-tile -->
+<!-- game-tile 竖立牌 + 推倒动画(wx.createAnimation) -->
+<view class="tile-wrapper size-{{size}} {{selected ? 'selected' : ''}} {{disabled ? 'disabled' : ''}} {{drawn ? 'drawn' : ''}}" bindtap="onTap">
+  <view class="tile-thickness {{tile.color === 'black' ? 'thick-black' : 'thick-white'}}"></view>
+
+  <!-- 主体（动画作用于此） -->
+  <view class="tile-inner {{faceUp || tile.isRevealed ? 'face-up' : 'face-down'}} {{tile.color === 'black' ? 'tile-black' : 'tile-white'}}"
+>
+    <view class="tile-shine"></view>
+
+    <block wx:if="{{faceUp || tile.isRevealed}}">
+      <view class="tile-value {{tile.color === 'black' ? 'val-dark' : 'val-light'}}">
+        <text wx:if="{{tile.isJoker}}" class="joker-text">—</text>
+        <text wx:else class="number-text">{{tile.value}}</text>
+        <view class="num-underline {{tile.color === 'black' ? 'ul-dark' : 'ul-light'}}" wx:if="{{!tile.isJoker}}"></view>
+      </view>
+    </block>
+    <block wx:else>
+      <view class="tile-back">
+        <text class="back-symbol {{tile.color === 'black' ? 'back-dark' : 'back-light'}}">≤</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 浮现数字层 -->
+  <view class="reveal-overlay {{showOverlay ? 'show' : ''}} {{tile.color === 'black' ? 'overlay-dark' : 'overlay-light'}}">
+    <text wx:if="{{tile.isJoker}}" class="ov-joker">—</text>
+    <text wx:else class="ov-num">{{tile.value}}</text>
+    <view class="num-underline {{tile.color === 'black' ? 'ul-dark' : 'ul-light'}}" wx:if="{{!tile.isJoker}}"></view>
+  </view>
+
+  <!-- 已翻开金色 ✓ -->
+  <view class="revealed-mark" wx:if="{{tile.isRevealed}}">✓</view>
+</view>
