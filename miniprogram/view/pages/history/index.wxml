@@ -36,15 +36,15 @@
       <view class="record-card" wx:for="{{records}}" wx:key="_id">
         <view class="record-top">
           <text class="record-mode">{{item.mode === 'ai' ? '🤖 人机' : '👥 联机'}}</text>
-          <text class="record-result {{item.winner === '' ? 'record-lose' : 'record-win'}}">{{item.winner === '' ? '负' : '胜'}}</text>
+          <text class="record-result {{item.myWin ? 'record-win' : 'record-lose'}}">{{item.myWin ? '胜' : '负'}}</text>
         </view>
         <view class="record-meta">
-          <text class="record-date">{{item.createdAt ? item.createdAt.substring(0, 10) : ''}}</text>
-          <text class="record-info">{{item.totalTurns}} 回合 · {{item.duration >= 60 ? (item.duration / 60).toFixed(0) + '分' : item.duration + '秒'}}</text>
+          <text class="record-date">{{item.dateStr}}</text>
+          <text class="record-info">{{item.totalTurns}} 回合 · {{item.durStr}}</text>
         </view>
         <view class="record-players">
           <text wx:for="{{item.players}}" wx:key="openid" wx:for-item="p" class="record-player {{p.isWinner ? 'player-win' : ''}}">
-            {{p.nickName}}{{p.isWinner ? ' ✓' : ''}} · {{p.tilesRemaining}}张
+            {{p.nickName}} · {{p.tilesRemaining}}张{{p.isWinner ? ' 🏆' : ''}}
           </text>
         </view>
       </view>

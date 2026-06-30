@@ -33,7 +33,19 @@ Page({
       const app = getApp();
       const myOpenid = app.globalData?.myOpenid || '';
       const result = await HistoryService.getRecords(page, 20);
-      const records = page === 1 ? result.records : [...this.data.records, ...result.records];
+      var records = page === 1 ? result.records : [...this.data.records, ...result.records];
+
+      // 格式化记录（WXML 不支持 .toFixed() 等方法调用）
+      records = records.map(function(r) {
+        var dur = r.duration || 0;
+        var durStr = dur >= 60 ? Math.floor(dur / 60) + '分' + (dur % 60) + '秒' : dur + '秒';
+        var dateStr = r.createdAt ? r.createdAt.substring(0, 10) : '';
+        // 胜负标记
+        var app = getApp();
+        var myOid = app.globalData?.myOpenid || '';
+        var me = (r.players || []).find(function(p) { return p.openid === myOid; });
+        return Object.assign({}, r, { durStr: durStr, dateStr: dateStr, myWin: me && me.isWinner });
+      });
 
       // 计算统计
       let wins = 0;
