@@ -1,6 +1,19 @@
 # 开发日志
 
-> 最后更新: 2026-06-29
+> 最后更新: 2026-06-30
+
+---
+
+## 2026-06-30 产出
+
+### AI 策略：边界优先 + 位置先验
+
+| 变更 | 说明 |
+|------|------|
+| **边界优先** | 对手无已翻牌时(revealedCount===0)，优先猜两端位置(Medium score-0.5, Hard ×1.2)，确立边界后更容易推理 |
+| **位置先验** | Hard 首位 pos=0 → rangeMid 上限=handLen×0.8(倾向小值)；末位 → rangeMid 下限=11-handLen×0.8(倾向大值) |
+| **aiWrongJoker 范围修正** | 必然 Joker 路径不再受 aiWrongJoker 限制(只查 jokerColorSeen + jokerNegated)；aiWrongJoker 仅限制随机 Joker 路径 |
+| **fallback bothSeen 永不放宽** | 三级级联中 bothSeen 始终检查(双色已占绝不可能)；仅放宽 oneSeen |
 
 ---
 

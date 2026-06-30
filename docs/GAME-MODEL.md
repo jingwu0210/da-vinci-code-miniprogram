@@ -487,7 +487,9 @@ HARD:   MEDIUM 全部逻辑 + 概率矩阵 + 中位加权(含位置偏置) + arg
 | 空间约束 | — | 空位独立并集 + 该色 unseenJ 缓冲 | 同 Medium |
 | Joker | 3% 猜 -1 | 必然Joker + 随机(动态概率) | 同 Medium |
 | 选目标 | 随机 | 优先否定位置，其次候选数最少 | 同 Medium → P矩阵 → argmax |
-| 中位加权 | — | — | rangeMid + 位置偏置(nLeft-nRight) |
+| 边界优先 | — | 对手 revealedCount=0 时，两端 score-0.5 | 对手 revealedCount=0 且 possible>2 时，两端 ×1.2 |
+| 位置先验 | — | — | 首位 rangeMid≤handLen×0.8，末位 rangeMid≥11-handLen×0.8 |
+| 中位加权 | — | — | rangeMid + nLeft-nRight 偏置 |
 | 兜底 | — | position 感知 + bothSeen 永不放宽 | 同 Medium |
 
 ```
@@ -557,7 +559,7 @@ pickInsert(handWithout, joker):
 
 pickGuess(gs, aiPlayer):
   委托给 C.evaluatePositions()
-  概率矩阵: 中位加权(rangeMid + nLeft-nRight偏置) + inferred惩罚
+  概率矩阵: 中位加权 + 位置先验(首位/末位 bias) + inferred惩罚 + 边界奖励
   Joker 权重 = unseenJ/(对手暗牌+1)
   argmax(P) 选最高置信度
   兜底: C.pickFallback()

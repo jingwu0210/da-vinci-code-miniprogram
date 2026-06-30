@@ -206,8 +206,12 @@ exports.evaluatePositions = function(gs, aiPlayer) {
         if (negated[t.id+'_'+vv] || negated[opp+'_'+t.position+'_'+vv]) { hasNeg = true; break; }
       }
 
+      var isBoundary = (i === 0 || i === hand.length - 1);
+      var revCount = hand.filter(function(ht){ return ht.isRevealed; }).length;
       candidates.push({ opp: opp, pos: t.position, tileId: t.id, tileColor: t.color,
-        leftKey: leftKey, rightKey: rightKey, nLeft: nLeft, nRight: nRight, possible: possible, hasNeg: hasNeg });
+        leftKey: leftKey, rightKey: rightKey, nLeft: nLeft, nRight: nRight,
+        possible: possible, hasNeg: hasNeg, isBoundary: isBoundary,
+        revealedCount: revCount, handLen: hand.length });
     }
   });
 

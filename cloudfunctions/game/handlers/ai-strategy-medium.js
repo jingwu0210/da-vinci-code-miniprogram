@@ -31,7 +31,9 @@ exports.pickGuess = function(gs, aiPlayer) {
       var ik = pv + '_' + c.tileColor;
       if (eval.inferred[ik]) inferredPenalty += C.inferredPenalty(eval.inferred[ik]);
     });
-    var score = c.possible.length - (c.hasNeg ? 1 : 0) + inferredPenalty;
+    // 边界奖励: 仅在对手无已翻牌时(零信息)优先猜两端，确立边界后更好推理
+    var boundaryBonus = (c.isBoundary && c.possible.length > 2 && c.revealedCount === 0) ? 0.5 : 0;
+    var score = c.possible.length - (c.hasNeg ? 1 : 0) + inferredPenalty - boundaryBonus;
     if (score < bestRange) {
       bestRange = score;
       best = c;

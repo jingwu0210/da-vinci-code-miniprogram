@@ -74,9 +74,15 @@ exports.pickGuess = function(gs, aiPlayer) {
     if (!P[c.opp]) P[c.opp] = {};
     P[c.opp][c.pos] = {};
 
-    // 中位向空位多的方向偏移：nLeft 多 → 值偏大（需留空间给左侧），nRight 多 → 值偏小
+    // 中位向空位多方向偏移
     var bias = (c.nLeft || 0) - (c.nRight || 0);
-    var rangeMid = (c.leftKey[0] + c.rightKey[0] + bias) / 2;
+    var rawMid = (c.leftKey[0] + c.rightKey[0] + bias) / 2;
+    // 位置先验: 首位大概率小值，末位大概率大值
+    var rangeMid = rawMid;
+    if (c.handLen && c.handLen > 2) {
+      if (c.pos === 0) rangeMid = Math.min(rawMid, Math.floor(c.handLen * 0.8));
+      else if (c.pos === c.handLen - 1) rangeMid = Math.max(rawMid, 11 - Math.floor(c.handLen * 0.8));
+    }
     var weights = [];
     var totalWeight = 0;
     // 对手暗牌总数（Joker 先验概率用）
@@ -97,8 +103,10 @@ exports.pickGuess = function(gs, aiPlayer) {
       weights.push(w);
       totalWeight += w;
     });
+    // 边界奖励: 仅在对手零已翻牌 + 低置信度时优先两端
+    var boundaryBonus = (c.isBoundary && c.possible.length > 2 && c.revealedCount === 0) ? 1.2 : 1.0;
     c.possible.forEach(function(pv, wi) {
-      P[c.opp][c.pos][pv] = weights[wi] / totalWeight;
+      P[c.opp][c.pos][pv] = weights[wi] / totalWeight * boundaryBonus;
       hasAny = true;
     });
   });
