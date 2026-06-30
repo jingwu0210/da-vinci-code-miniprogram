@@ -182,6 +182,8 @@ Page({
     var self = this;
     showConfirm('退出对局', '退出后本局将判负，确定？').then(function (ok) {
       if (!ok) return;
+      self._alive = false;  // 阻止 watcher 在退出过程中再触发 AI
+      self._aiPending = false;
       GameManager.quitGame(self._gameId).then(function () {}).catch(function () {});
       wx.redirectTo({ url: ROUTES.LOBBY });
     });
