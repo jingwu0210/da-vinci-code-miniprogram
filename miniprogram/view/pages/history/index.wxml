@@ -1,1 +1,61 @@
-<!-- pages/history -->
+<view class="page">
+  <!-- 加载态 -->
+  <view class="loading-ctn" wx:if="{{loading}}">
+    <text class="loading-text">加载中…</text>
+  </view>
+
+  <!-- 空态 -->
+  <view class="empty-ctn" wx:elif="{{empty}}">
+    <text class="empty-emoji">📋</text>
+    <text class="empty-text">暂无对局记录</text>
+    <text class="empty-hint">完成一局对局后这里会出现记录</text>
+  </view>
+
+  <!-- 列表 -->
+  <block wx:else>
+    <!-- 统计卡片 -->
+    <view class="stats-card">
+      <view class="stat-item">
+        <text class="stat-num">{{stats.totalGames}}</text>
+        <text class="stat-label">总场次</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-num">{{stats.wins}}</text>
+        <text class="stat-label">胜场</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-num">{{stats.winRate}}</text>
+        <text class="stat-label">胜率</text>
+      </view>
+    </view>
+
+    <!-- 记录列表 -->
+    <view class="record-list">
+      <view class="record-card" wx:for="{{records}}" wx:key="_id">
+        <view class="record-top">
+          <text class="record-mode">{{item.mode === 'ai' ? '🤖 人机' : '👥 联机'}}</text>
+          <text class="record-result {{item.winner === '' ? 'record-lose' : 'record-win'}}">{{item.winner === '' ? '负' : '胜'}}</text>
+        </view>
+        <view class="record-meta">
+          <text class="record-date">{{item.createdAt ? item.createdAt.substring(0, 10) : ''}}</text>
+          <text class="record-info">{{item.totalTurns}} 回合 · {{item.duration >= 60 ? (item.duration / 60).toFixed(0) + '分' : item.duration + '秒'}}</text>
+        </view>
+        <view class="record-players">
+          <text wx:for="{{item.players}}" wx:key="openid" wx:for-item="p" class="record-player {{p.isWinner ? 'player-win' : ''}}">
+            {{p.nickName}}{{p.isWinner ? ' ✓' : ''}} · {{p.tilesRemaining}}张
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore}}">
+      <text class="load-more-text">上拉加载更多</text>
+    </view>
+    <view class="load-more" wx:else>
+      <text class="load-more-text">— 没有更多了 —</text>
+    </view>
+  </block>
+</view>

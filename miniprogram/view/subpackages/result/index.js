@@ -1,22 +1,25 @@
 /**
  * 结算页。
- * 依赖: service/history/history-service, common/routes, common/modal-helper
  */
-
 const HistoryService = require('../../../service/history/history-service');
 const { ROUTES } = require('../../../common/routes');
-const { ROUTES: Routes } = require('../../../common/routes');
+const { resultShareConfig } = require('../../../cloud/share/share-helper');
 
 Page({
   data: {
     record: null,
+    isWinner: false,
     loading: true,
   },
 
   async onLoad(options) {
+    const app = getApp();
+    const myOpenid = app.globalData?.myOpenid || '';
     try {
       const resp = await HistoryService.saveRecord(options.gameId);
-      this.setData({ record: resp.data.record, loading: false });
+      const record = resp.data.record;
+      const isWinner = record.winner === myOpenid;
+      this.setData({ record, isWinner, loading: false });
     } catch (e) {
       this.setData({ loading: false });
     }
@@ -27,9 +30,7 @@ Page({
   },
 
   onShareAppMessage() {
-    return {
-      title: '我在达芬奇密码中获胜了！来挑战我吧！',
-      path: ROUTES.LOBBY,
-    };
+    const cfg = resultShareConfig();
+    return { title: cfg.title, path: cfg.path };
   },
 });

@@ -1,1 +1,30 @@
-/* subpackages/result */
+.page { min-height:100vh; background:#2C3A4A; display:flex; flex-direction:column; align-items:center; padding:48rpx 32rpx; }
+
+.loading-ctn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.loading-text { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, #8A8A90); }
+
+/* ── 胜/负标题 ── */
+.result-header { display:flex; flex-direction:column; align-items:center; margin:32rpx 0 48rpx; }
+.result-emoji { font-size:96rpx; }
+.result-title { font-size:var(--fs-title, 44rpx); font-weight:700; margin-top:16rpx; }
+.winner .result-title { color:#C9A84C; }
+.loser .result-title { color:var(--text-secondary, #8A8A90); }
+
+/* ── 卡片 ── */
+.info-card, .players-card { width:100%; background:rgba(235,235,229,0.06); border:1rpx solid #3E4A58; border-radius:var(--radius-md, 12rpx); padding:24rpx 32rpx; margin-bottom:24rpx; }
+.info-row { display:flex; justify-content:space-between; padding:12rpx 0; }
+.info-label { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, #8A8A90); }
+.info-value { font-size:var(--fs-body, 28rpx); color:var(--text-primary, #EBEBE5); }
+
+.section-title { font-size:var(--fs-subtitle, 36rpx); color:var(--text-primary, #EBEBE5); margin-bottom:16rpx; font-weight:600; }
+.player-row { display:flex; align-items:center; padding:12rpx 0; }
+.player-rank { font-size:36rpx; margin-right:16rpx; }
+.player-name { flex:1; font-size:var(--fs-body, 28rpx); color:var(--text-primary, #EBEBE5); }
+.winner-name { color:#C9A84C; font-weight:600; }
+.player-tiles { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); }
+
+/* ── 按钮 ── */
+.btn-group { width:100%; margin-top:32rpx; display:flex; flex-direction:column; gap:16rpx; }
+.btn { width:100%; height:96rpx; border-radius:var(--radius-sm, 8rpx); font-size:var(--fs-body, 28rpx); display:flex; align-items:center; justify-content:center; }
+.btn-share { background:#C9A84C; color:#2C3A4A; border:none; }
+.btn-lobby { background:rgba(235,235,229,0.06); color:var(--text-primary, #EBEBE5); border:1rpx solid #3E4A58; }

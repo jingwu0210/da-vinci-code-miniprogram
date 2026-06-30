@@ -1,1 +1,30 @@
-/* pages/history */
+.page { min-height:100vh; background:#2C3A4A; padding:24rpx 32rpx; }
+
+.loading-ctn, .empty-ctn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:200rpx; }
+.loading-text { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, #8A8A90); }
+.empty-emoji { font-size:72rpx; margin-bottom:16rpx; }
+.empty-text { font-size:var(--fs-subtitle, 36rpx); color:var(--text-primary, #EBEBE5); margin-bottom:8rpx; }
+.empty-hint { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); }
+
+/* ── 统计卡片 ── */
+.stats-card { display:flex; align-items:center; background:rgba(235,235,229,0.06); border:1rpx solid #3E4A58; border-radius:var(--radius-md, 12rpx); padding:24rpx 0; margin-bottom:24rpx; }
+.stat-item { flex:1; display:flex; flex-direction:column; align-items:center; }
+.stat-num { font-size:var(--fs-subtitle, 36rpx); color:var(--text-primary, #EBEBE5); font-weight:700; }
+.stat-label { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); margin-top:4rpx; }
+.stat-divider { width:1rpx; height:48rpx; background:#3E4A58; }
+
+/* ── 记录卡片 ── */
+.record-card { background:rgba(235,235,229,0.06); border:1rpx solid #3E4A58; border-radius:var(--radius-sm, 8rpx); padding:20rpx 24rpx; margin-bottom:16rpx; }
+.record-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8rpx; }
+.record-mode { font-size:var(--fs-body, 28rpx); color:var(--text-primary, #EBEBE5); }
+.record-result { font-size:var(--fs-body, 28rpx); font-weight:600; }
+.record-win { color:#4A7C59; }
+.record-lose { color:var(--text-secondary, #8A8A90); }
+.record-meta { display:flex; justify-content:space-between; margin-bottom:8rpx; }
+.record-date, .record-info { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); }
+.record-players { display:flex; flex-wrap:wrap; gap:8rpx; }
+.record-player { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); padding:4rpx 12rpx; background:rgba(235,235,229,0.04); border-radius:4rpx; }
+.player-win { color:#C9A84C; }
+
+.load-more { display:flex; justify-content:center; padding:24rpx 0; }
+.load-more-text { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); }
