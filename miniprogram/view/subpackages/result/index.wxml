@@ -16,7 +16,7 @@
       </view>
       <view class="info-row" wx:if="{{record.difficulty}}">
         <text class="info-label">难度</text>
-        <text class="info-value">{{record.difficulty === 'easy' ? '简单' : record.difficulty === 'medium' ? '中等' : '困难'}}</text>
+        <text class="info-value">{{record.diffStr}}</text>
       </view>
       <view class="info-row">
         <text class="info-label">回合数</text>
@@ -24,7 +24,7 @@
       </view>
       <view class="info-row">
         <text class="info-label">时长</text>
-        <text class="info-value">{{record.duration >= 60 ? (record.duration / 60).toFixed(0) + '分' + (record.duration % 60) + '秒' : record.duration + '秒'}}</text>
+        <text class="info-value">{{record.durStr}}</text>
       </view>
     </view>
 

@@ -17,9 +17,13 @@ Page({
     const myOpenid = app.globalData?.myOpenid || '';
     try {
       const resp = await HistoryService.saveRecord(options.gameId);
-      const record = resp.data.record;
-      const isWinner = record.winner === myOpenid;
-      this.setData({ record, isWinner, loading: false });
+      var record = resp.data.record;
+      var isWinner = record.winner === myOpenid;
+      // WXML 不支持 .toFixed()，在 JS 中预格式化
+      var dur = record.duration || 0;
+      record.durStr = dur >= 60 ? Math.floor(dur / 60) + '分' + (dur % 60) + '秒' : dur + '秒';
+      record.diffStr = record.difficulty === 'easy' ? '简单' : record.difficulty === 'medium' ? '中等' : record.difficulty === 'hard' ? '困难' : '';
+      this.setData({ record: record, isWinner: isWinner, loading: false });
     } catch (e) {
       this.setData({ loading: false });
     }
