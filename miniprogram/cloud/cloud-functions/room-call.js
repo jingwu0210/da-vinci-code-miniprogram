@@ -28,6 +28,7 @@ module.exports = {
   getRoom:      (roomId) => call('getRoom', { roomId }),
   joinRoom:     (roomId, password) => call('joinRoom', { roomId, password }),
   leaveRoom:    (roomId) => call('leaveRoom', { roomId }),
+  disbandRoom:  (roomId) => call('disbandRoom', { roomId }),
   toggleReady:  (roomId, isReady) => call('toggleReady', { roomId, isReady }),
   startGame:    (roomId) => call('startGame', { roomId }),
 };

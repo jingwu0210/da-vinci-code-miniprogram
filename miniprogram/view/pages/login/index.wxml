@@ -1,25 +1,40 @@
 <!-- 登录页 -->
 <view class="login-page">
+  <!-- 牌组展示：扇形展开 -->
+  <view class="hero">
+    <view class="hero-card c1"><view class="hero-tile black"><text class="hero-num">5</text><view class="hero-line"></view></view></view>
+    <view class="hero-card c2"><view class="hero-tile white"><text class="hero-num" style="color:#1A1A1E">3</text><view class="hero-line white-line"></view></view></view>
+    <view class="hero-card c3"><view class="hero-tile black j"><text class="hero-num" style="color:#C9A84C;font-size:32rpx">—</text></view></view>
+    <view class="hero-card c4"><view class="hero-tile white"><text class="hero-num" style="color:#1A1A1E">8</text><view class="hero-line white-line"></view></view></view>
+  </view>
+
+  <!-- 品牌 -->
   <view class="brand">
     <view class="brand-title">达芬奇密码</view>
     <view class="brand-sub">DA VINCI CODE</view>
   </view>
-  <view wx:if="{{!loggedIn}}" class="login-actions">
-    <button class="btn-login" bindtap="onTapLogin" loading="{{loading}}">微信一键登录</button>
-    <view class="btn-guest" bindtap="onTapGuest">游客模式</view>
+
+  <!-- 操作按钮 -->
+  <view class="actions" wx:if="{{!loading}}">
+    <button class="btn btn-wechat" bindtap="onTapLogin" wx:if="{{!loggedIn}}">微信登录</button>
+    <view class="btn btn-guest" bindtap="onTapGuest" wx:if="{{!loggedIn}}">游客模式 · 直接开始</view>
   </view>
-  <view wx:if="{{loggedIn}}" class="profile-setup">
+
+  <!-- 头像昵称设置 -->
+  <view class="profile-setup" wx:if="{{loggedIn}}">
     <view class="avatar-wrapper">
       <image class="profile-avatar" src="{{avatarUrl}}" mode="aspectFill" />
       <button class="avatar-trigger" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"></button>
     </view>
-    <view class="avatar-label">点击设置头像</view>
     <input class="input-nickname" type="nickname" placeholder="点击输入昵称" value="{{nickName}}" bindinput="onNicknameInput" />
-    <button class="btn-start" bindtap="onConfirmProfile">进入游戏</button>
+    <button class="btn btn-start" bindtap="onConfirmProfile">进入游戏</button>
   </view>
-  <view class="agreement">
-    登录即表示同意\n
-    <text class="link" bindtap="onTapAgreement">《用户协议》</text>
-    <text class="link" bindtap="onTapPrivacy">《隐私政策》</text>
+
+  <!-- 协议 -->
+  <view class="agreement" wx:if="{{!loggedIn}}">
+    <text class="agree-text">登录即表示同意</text>
+    <text class="agree-link" bindtap="onTapAgreement">《用户协议》</text>
+    <text class="agree-text">和</text>
+    <text class="agree-link" bindtap="onTapPrivacy">《隐私政策》</text>
   </view>
 </view>

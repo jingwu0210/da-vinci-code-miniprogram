@@ -30,5 +30,6 @@
       <button class="btn-secondary" bindtap="onLeave">离开房间</button>
     </view>
     <button class="btn-start" wx:if="{{isCreator && canStart}}" bindtap="onStartGame">开始游戏</button>
+    <button class="btn-disband" wx:if="{{isCreator}}" bindtap="onDisband">解散房间</button>
   </view>
 </view>

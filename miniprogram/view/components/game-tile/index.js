@@ -1,6 +1,9 @@
 /**
  * game-tile —— 单张牌组件。
+ * 全局 animatedTiles 确保每个 tile id 只播一次推倒动画（组件重建不重置）
  */
+var animatedTiles = {};
+
 Component({
   properties: {
     tile:      { type: Object, value: {} },
@@ -10,18 +13,20 @@ Component({
     disabled:  { type: Boolean, value: false },
     drawn:     { type: Boolean, value: false },
     position:  { type: Number, value: 0 },
+    isOwn:     { type: Boolean, value: true },
   },
 
   data: {
-    animData: null,
-    showOverlay: false,
     wasRevealed: false,
   },
 
   observers: {
     'tile.isRevealed': function(isRevealed) {
-      if (isRevealed && !this.data.wasRevealed) {
-        this.setData({ showOverlay: true, wasRevealed: true });
+      var tid = this.properties.tile && this.properties.tile.id;
+      if (isRevealed && tid && !animatedTiles[tid]) {
+        animatedTiles[tid] = true;
+        this.setData({ wasRevealed: true });
+        if (this.properties.isOwn) { try { wx.vibrateShort({ type: 'medium' }); } catch(e) {} }
       }
     },
   },

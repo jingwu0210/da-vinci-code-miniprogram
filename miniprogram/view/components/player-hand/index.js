@@ -12,6 +12,7 @@ Component({
     interactive: { type: Boolean, value: false },
     insertMode:  { type: Boolean, value: false },
     drawnTile:   { type: Object, value: null },
+    aiGuessPosition: { type: Number, value: -1 },
   },
 
   data: {

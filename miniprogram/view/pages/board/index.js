@@ -20,6 +20,7 @@ Page({
     offline: false,
     guessTarget: null,
     canEndTurn: false,
+    aiGuessPosition: -1,
   },
 
   _gameId: null,
@@ -75,6 +76,7 @@ Page({
     if (!color) return;
     this._guessedCorrectly = false;
     this.setData({ canEndTurn: false, guessTarget: null });
+    audio.play('draw');
     var self = this;
     GameManager.drawTile(this._gameId, color).then(function (result) {
       // 池空跳过摸牌 → 直接刷新进入猜测
@@ -129,8 +131,10 @@ Page({
     var position = detail.position;
     var value = detail.value;
     if (!targetOpenid || position === undefined || value === undefined) return;
+    try { wx.vibrateShort({ type: 'light' }); } catch(e) {}
     var self = this;
     GameManager.makeGuess(this._gameId, targetOpenid, position, value).then(function (result) {
+      if (result.isCorrect) audio.play('guess_correct');
       if (result.gameOver) {
         wx.showToast({ title: '你赢了！', icon: 'success', duration: 2000 });
         setTimeout(function () { self._goResult(result.winner); }, 2000);
@@ -141,12 +145,10 @@ Page({
         if (result.isCorrect) {
           self._guessedCorrectly = true;
           wx.showToast({ title: '猜对了！', icon: 'success', duration: 1000 });
-          audio.vibrate('medium');
           self.setData({ guessTarget: null, canEndTurn: true });
         } else {
           self._guessedCorrectly = false;
           wx.showToast({ title: '猜错了！', icon: 'none', duration: 2000 });
-          audio.vibrate('light');
           self.setData({ guessTarget: null });
           // 猜错 → 触发 AI
           if (self._alive && !state.game.myTurn && self._isAi) setTimeout(function () { self._triggerAi(); }, 800);
@@ -228,6 +230,9 @@ Page({
         wx.showToast({ title: 'AI 摸了' + (a.color === 'black' ? ' 黑色' : ' 白色') + '牌', icon: 'none', duration: 1500 });
       } else if (a.action === 'guess') {
         wx.showToast({ title: 'AI 猜你第' + ((a.position||0)+1) + '张牌为 ' + (a.value === -1 ? 'Joker' : a.value), icon: 'none', duration: 1200 });
+        // 高亮被猜的牌
+        self.setData({ aiGuessPosition: a.position });
+        setTimeout(function() { self.setData({ aiGuessPosition: -1 }); }, 2000);
         setTimeout(function() {
           wx.showToast({ title: a.isCorrect ? '猜对了！' : '猜错了', icon: 'none', duration: 1200 });
         }, 1600);

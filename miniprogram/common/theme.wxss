@@ -44,7 +44,7 @@ page {
   /* === 牌体 (1:2 竖立) === */
   --tile-ratio:      2;            /* 高/宽比，2 = 1:2 竖立 */
   --tile-radius:     4rpx;
-  --tile-gap:        8rpx;
+  --tile-gap:        6rpx;
   --tile-thickness:  4rpx;         /* 3D 厚度偏移 */
   --tile-shadow:     rgba(0,0,0,0.4);
   --tile-highlight:  rgba(255,255,255,0.06);

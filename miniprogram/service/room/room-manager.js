@@ -27,6 +27,11 @@ const RoomManager = {
     return resp.data.room;
   },
 
+  async disbandRoom(roomId) {
+    const resp = await RoomCall.disbandRoom(roomId);
+    return resp.success ? resp.data : null;
+  },
+
   async leaveRoom(roomId) {
     const resp = await RoomCall.leaveRoom(roomId);
     this._handleError(resp);

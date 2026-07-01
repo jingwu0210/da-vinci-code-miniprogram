@@ -7,13 +7,9 @@ var store = require('../common/store');
 // 音效文件路径映射
 var SOUNDS = {
   draw:          '/assets/audio/draw.mp3',
-  insert:        '/assets/audio/insert.mp3',
   guess_correct: '/assets/audio/guess_correct.mp3',
-  guess_wrong:   '/assets/audio/guess_wrong.mp3',
-  turn_start:    '/assets/audio/turn_start.mp3',
   victory:       '/assets/audio/victory.mp3',
   defeat:        '/assets/audio/defeat.mp3',
-  tile_flip:     '/assets/audio/tile_flip.mp3',
 };
 
 var ctx = null;
@@ -49,4 +45,15 @@ function vibrate(type) {
   } catch (e) { /* ignore */ }
 }
 
-module.exports = { play, vibrate };
+function vibrateShort() {
+  var settings = store.get('settings') || {};
+  if (settings.vibrationEnabled === false) return;
+  try { wx.vibrateShort({ type: 'light' }); } catch (e) {}
+}
+function vibrateLong() {
+  var settings = store.get('settings') || {};
+  if (settings.vibrationEnabled === false) return;
+  try { wx.vibrateLong(); } catch (e) { try { wx.vibrateShort({ type: 'heavy' }); } catch (e2) {} }
+}
+
+module.exports = { play, vibrate, vibrateShort, vibrateLong };

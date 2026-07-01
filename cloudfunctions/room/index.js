@@ -18,6 +18,7 @@ exports.main = async (event, context) => {
     case 'getRoom':      return require('./handlers/getRoom')(event, caller, db);
     case 'joinRoom':     return require('./handlers/joinRoom')(event, caller, db);
     case 'leaveRoom':    return require('./handlers/leaveRoom')(event, caller, db);
+    case 'disbandRoom':  return require('./handlers/disbandRoom')(event, caller, db);
     case 'toggleReady':  return require('./handlers/toggleReady')(event, caller, db);
     case 'startGame':    return require('./handlers/startGame')(event, caller, db);
     default: return { success: false, error: 'UNKNOWN_TYPE', errorCode: 'INVALID_PARAMS' };

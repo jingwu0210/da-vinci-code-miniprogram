@@ -1,26 +1,123 @@
-<!-- 玩法教程 — 6 步滑动引导 -->
+<!-- 玩法教程 -->
 <view class="page">
-  <swiper class="swiper" current="{{step}}" bindchange="onStepChange" indicator-dots="{{true}}" indicator-color="#3E4A58" indicator-active-color="#C9A84C">
+  <swiper class="swiper" current="{{step}}" bindchange="onStepChange" indicator-dots="{{true}}" indicator-color="#3E4A58" indicator-active-color="#C9A84C" duration="300">
+
+    <!-- 1. 牌组介绍 -->
     <swiper-item>
-      <view class="step"><text class="step-emoji">🃏</text><text class="step-title">牌组介绍</text><text class="step-desc">26 张牌，黑/白各 13 张。每种颜色 0~11 数字牌 + 1 张万能牌（Joker）。牌背颜色与正面相同，对手可看到你的牌背颜色。</text></view>
+      <scroll-view class="step-scroll" scroll-y>
+        <view class="step-header"><text class="step-num">1 / 6</text><text class="step-title">牌组介绍</text></view>
+        <view class="step-body">
+          <text class="step-desc">达芬奇密码共 26 张牌。黑色和白色各 13 张：0~11 数字牌 + 1 张万能牌（Joker）。</text>
+          <text class="step-desc">牌背颜色与正面相同——对手可看到你每张牌的背面颜色，但不知道具体数字。</text>
+          <view class="example-box">
+            <text class="example-label">示例</text>
+            <view class="tile-row">
+              <view class="demo-tile black">0</view><view class="demo-tile black">1</view><view class="demo-tile black">···</view><view class="demo-tile black">11</view><view class="demo-tile black joker">—</view>
+            </view>
+            <view class="tile-row" style="margin-top:12rpx">
+              <view class="demo-tile white">0</view><view class="demo-tile white">1</view><view class="demo-tile white">···</view><view class="demo-tile white">11</view><view class="demo-tile white joker">—</view>
+            </view>
+            <text class="example-caption">黑色 13 张（含 1 Joker） + 白色 13 张（含 1 Joker） = 26 张</text>
+          </view>
+        </view>
+      </scroll-view>
     </swiper-item>
+
+    <!-- 2. 游戏准备 -->
     <swiper-item>
-      <view class="step"><text class="step-emoji">🎴</text><text class="step-title">游戏准备</text><text class="step-desc">洗牌后每人发 4 张（2-3人）或 3 张（4人）。手牌按从小到大、同值黑左白右排列。Joker 任意位置。</text></view>
+      <scroll-view class="step-scroll" scroll-y>
+        <view class="step-header"><text class="step-num">2 / 6</text><text class="step-title">游戏准备</text></view>
+        <view class="step-body">
+          <text class="step-desc">所有牌洗匀后，每人发 4 张（2~3 人）或 3 张（4 人）。手牌按规则从左到右立在自己面前。</text>
+          <view class="example-box">
+            <text class="example-label">排序规则</text>
+            <view class="rule-list">
+              <text class="rule-item">① 数字从小到大</text>
+              <text class="rule-item">② 同数字时，黑色在左、白色在右</text>
+              <text class="rule-item">③ Joker 可插入任意位置</text>
+            </view>
+            <text class="example-label" style="margin-top:16rpx">手牌示例</text>
+            <view class="tile-row">
+              <view class="demo-tile black">2</view><view class="demo-tile white">2</view><view class="demo-tile black joker">—</view><view class="demo-tile white">8</view>
+            </view>
+            <text class="example-caption">黑 2 → 白 2 → Joker → 白 8（从小到大，同值黑左白右，Joker 可插任意位置）</text>
+          </view>
+        </view>
+      </scroll-view>
     </swiper-item>
+
+    <!-- 3. 回合流程 -->
     <swiper-item>
-      <view class="step"><text class="step-emoji">🔄</text><text class="step-title">回合流程</text><text class="step-desc">每回合：①选择摸黑/白牌→②牌出现在手牌末尾（正面朝上可见）→③猜测对手某张暗牌的数字（Joker 猜 -1，无需猜颜色）→猜对继续/猜错亮己牌回合结束。</text></view>
+      <scroll-view class="step-scroll" scroll-y>
+        <view class="step-header"><text class="step-num">3 / 6</text><text class="step-title">回合流程</text></view>
+        <view class="step-body">
+          <text class="step-desc">每个回合两步：摸牌 → 猜测。摸到的牌出现在手牌末尾，正面朝上供你查看，然后直接进入猜测。</text>
+          <view class="example-box">
+            <text class="example-label">完整回合</text>
+            <view class="rule-list">
+              <text class="rule-item">① 摸牌：选择摸黑色或白色 → 牌出现在手牌末尾（正面朝上）</text>
+              <text class="rule-item">② 猜测：点击对手的暗牌 → 选数字 /「—」（Joker）→ 确认</text>
+              <text class="rule-item">③ 猜对：对手牌翻开 → 可选[继续猜测]或[结束回合]</text>
+              <text class="rule-item">④ 猜错：自己摸的牌亮出（数字牌自动插入正确位置 / Joker 手动选位）→ 回合结束</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
     </swiper-item>
+
+    <!-- 4. 猜测规则 -->
     <swiper-item>
-      <view class="step"><text class="step-emoji">🎯</text><text class="step-title">猜测规则</text><text class="step-desc">点击对手暗牌→选择数字→确认。牌背颜色可见，只需猜数字（0~11 或 -1 Joker）。猜对：对手牌翻开，可继续猜。猜错：自己摸的牌亮出，回合结束。</text></view>
+      <scroll-view class="step-scroll" scroll-y>
+        <view class="step-header"><text class="step-num">4 / 6</text><text class="step-title">猜测规则</text></view>
+        <view class="step-body">
+          <text class="step-desc">牌背颜色可见，所以只需猜数字。Joker 在选择面板点「—」即可。</text>
+          <view class="example-box">
+            <text class="example-label">猜测示例</text>
+            <view class="tile-row">
+              <view class="demo-tile black back">≤</view><view class="demo-tile white back">≤</view><view class="demo-tile black back">≤</view><view class="demo-tile white">5</view>
+            </view>
+            <text class="example-caption">对手手牌：前 3 张暗牌（只知颜色），第 4 张已被猜中翻开（白 5）。点击暗牌后选择数字或 Joker 进行猜测。</text>
+            <text class="example-label" style="margin-top:16rpx">排序推理</text>
+            <text class="step-desc">利用已翻牌锁定左右边界。如示例中第 3 张黑色暗牌：左边第 2 张是白色暗牌，右边第 4 张是白 5，所以它必须是 ≤ 4 的黑色数字（或 Joker）。</text>
+          </view>
+        </view>
+      </scroll-view>
     </swiper-item>
+
+    <!-- 5. Joker -->
     <swiper-item>
-      <view class="step"><text class="step-emoji">⭐</text><text class="step-title">Joker 万能牌</text><text class="step-desc">无固定数值，可插入手牌任意位置。是最强混淆牌——对手不确定 Joker 的位置就难以推理你的手牌顺序。猜中 Joker 需猜 -1。</text></view>
+      <scroll-view class="step-scroll" scroll-y>
+        <view class="step-header"><text class="step-num">5 / 6</text><text class="step-title">Joker 万能牌</text></view>
+        <view class="step-body">
+          <text class="step-desc">Joker 没有固定数值，可以放在手牌任意位置。这是最强的混淆牌——对手不知道你的 Joker 在哪，就无法准确推理你的手牌顺序。</text>
+          <view class="example-box">
+            <text class="example-label">Joker 灵活性</text>
+            <view class="tile-row">
+              <view class="demo-tile black">2</view><view class="demo-tile black joker">—</view><view class="demo-tile white">5</view><view class="demo-tile white">8</view>
+            </view>
+            <text class="example-caption">Joker 放在 2 和 5 之间——对手无法判断这里是什么数字。猜测时选择「—」即可。</text>
+          </view>
+        </view>
+      </scroll-view>
     </swiper-item>
+
+    <!-- 6. 胜负 -->
     <swiper-item>
-      <view class="step"><text class="step-emoji">🏆</text><text class="step-title">胜负 & 开始</text><text class="step-desc">率先猜出所有对手全部手牌的玩家获胜。手牌全被猜中则被淘汰。准备好了吗？去大厅开始你的第一局推理吧！</text></view>
+      <scroll-view class="step-scroll" scroll-y>
+        <view class="step-header"><text class="step-num">6 / 6</text><text class="step-title">胜负 & 开始</text></view>
+        <view class="step-body">
+          <text class="step-desc">率先猜出所有对手全部手牌的玩家获胜。手牌被全部猜中的玩家被淘汰。</text>
+          <view class="example-box">
+            <text class="example-label">胜利条件</text>
+            <view class="tile-row">
+              <view class="demo-tile black">2</view><view class="demo-tile white">5</view><view class="demo-tile black">8</view><view class="demo-tile white">11</view>
+            </view>
+            <text class="example-caption">对手全部手牌都被翻开 → 你获胜！</text>
+          </view>
+          <text class="step-desc" style="margin-top:24rpx">准备好了吗？去大厅开始你的第一局推理游戏吧！</text>
+        </view>
+      </scroll-view>
     </swiper-item>
+
   </swiper>
-  <view class="btn-bar">
-    <button class="btn-back" bindtap="onTapLobby">返回大厅</button>
-  </view>
 </view>

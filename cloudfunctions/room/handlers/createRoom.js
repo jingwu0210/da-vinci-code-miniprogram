@@ -18,7 +18,21 @@ module.exports = async function (event, caller, db) {
       exists = check.data.length > 0;
     }
 
-    const players = [{ openid: caller, nickName: '', avatarUrl: '', isReady: mode === 'ai', isAI: false, seatIndex: 0 }];
+    // 查询创建者昵称头像
+    var creatorName = '';
+    var creatorAvatar = '';
+    if (!caller.startsWith('t_')) {
+      try {
+        var profileRes = await db.collection('players').where({ openid: caller }).get();
+        if (profileRes.data && profileRes.data.length > 0) {
+          creatorName = profileRes.data[0].nickName || '';
+          creatorAvatar = profileRes.data[0].avatarUrl || '';
+        }
+      } catch (e) { /* ignore */ }
+    }
+    if (!creatorName) creatorName = caller.startsWith('t_') ? '游客' + caller.slice(2, 6) : caller.substring(0, 10);
+
+    const players = [{ openid: caller, nickName: creatorName, avatarUrl: creatorAvatar, isReady: mode === 'ai', isAI: false, seatIndex: 0 }];
 
     // AI 模式：自动添加 AI 玩家
     if (mode === 'ai') {

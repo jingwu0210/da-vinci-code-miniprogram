@@ -13,7 +13,7 @@
               data-position="{{item.position}}" catchtap="onTileTap">
           <game-tile tile="{{item}}" faceUp="{{item.isRevealed}}" size="medium"
                      selected="{{selectedPosition === item.position}}"
-                     disabled="{{item.isRevealed}}" position="{{item.position}}" />
+                     disabled="{{item.isRevealed}}" position="{{item.position}}" isOwn="{{false}}" />
         </view>
       </block>
       <block wx:if="{{tiles.length === 0}}">

@@ -7,6 +7,7 @@ const store = require('../../../common/store');
 const login = require('../../../utils/login');
 const { ROUTES } = require('../../../common/routes');
 const { resultShareConfig } = require('../../../cloud/share/share-helper');
+var audio = require('../../../utils/audio');
 
 Page({
   data: {
@@ -14,15 +15,19 @@ Page({
     isWinner: false,
     loading: true,
     userType: 'tourist',
+    pageHeight: '100vh',
   },
 
   async onLoad(options) {
     var userType = login.getUserType();
-    this.setData({ userType: userType });
+    // 真机 100vh 不准确，用系统窗口高度
+    var sys = wx.getSystemInfoSync();
+    this.setData({ userType: userType, pageHeight: sys.windowHeight + 'px' });
 
     // 测试模式
     if (options.test === 'win' || options.test === 'lose') {
       var isWin = options.test === 'win';
+      audio.play(isWin ? 'victory' : 'defeat');
       this.setData({ record: _mockRecord(isWin), isWinner: isWin, loading: false });
       return;
     }
@@ -33,7 +38,7 @@ Page({
         var resp = await HistoryService.saveRecord(options.gameId);
         var record = resp.data.record;
         var isWinner = resp.data.isWinner;
-        // 同步更新 store 缓存的 stats（lobby 需要）
+        audio.play(isWinner ? 'victory' : 'defeat');
         var user = store.get('user') || {};
         var s = user.stats || { totalGames: 0, wins: 0, losses: 0 };
         s.totalGames = (s.totalGames || 0) + 1;
@@ -59,6 +64,7 @@ Page({
         // 游客: 比较 winner 与自己 touristId
         var myId = login.getTouristId();
         var won = options.winner === myId;
+        audio.play(won ? 'victory' : 'defeat');
         this.setData({ record: rec, isWinner: won, loading: false });
       } else { this.setData({ loading: false }); }
     } catch (e) { this.setData({ loading: false }); }

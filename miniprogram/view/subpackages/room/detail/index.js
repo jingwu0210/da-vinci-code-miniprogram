@@ -12,8 +12,8 @@ Page({
 
   async onLoad(options) {
     this._roomId = options.roomId;
-    const myOpenid = store.get('user')?.openid;
-    const isJoining = options.join === '1'; // share link: join first
+    var myOpenid = (store.get('user') && store.get('user').openid) || getApp().globalData.touristId;
+    var isJoining = options.join === '1';
 
     try {
       let room;
@@ -33,7 +33,9 @@ Page({
       store.set('currentRoom', room);
 
       this._watcher = RoomManager.subscribe(this._roomId, (doc) => {
-        this.setData({ room: doc, canStart: this._checkCanStart(doc) });
+        var myOpenid = (store.get('user') && store.get('user').openid) || getApp().globalData.touristId;
+        var me = doc.players.find(function(p) { return p.openid === myOpenid; });
+        this.setData({ room: doc, canStart: this._checkCanStart(doc), isReady: me ? me.isReady : false });
         if (doc.status === 'playing') {
           wx.redirectTo({ url: buildRoute(ROUTES.BOARD, { roomId: doc.roomId }) });
         }
@@ -43,10 +45,24 @@ Page({
 
   onUnload() { if (this._watcher) this._watcher.close(); },
 
+  _toggling: false,
+
   async onToggleReady() {
+    if (this._toggling) return;
+    this._toggling = true;
+    var newVal = !this.data.isReady;
+    // 乐观更新按钮文字 + 房间玩家列表
+    var room = this.data.room;
+    if (room && room.players) {
+      var myOpenid = (store.get('user') && store.get('user').openid) || getApp().globalData.touristId;
+      var me = room.players.find(function(p) { return p.openid === myOpenid; });
+      if (me) me.isReady = newVal;
+    }
+    this.setData({ isReady: newVal, room: room });
     try {
-      await RoomManager.toggleReady(this._roomId, !this.data.isReady);
-    } catch (e) { showToast(e.message); }
+      await RoomManager.toggleReady(this._roomId, newVal);
+    } catch (e) { this.setData({ isReady: !newVal }); showToast(e.message); }
+    this._toggling = false;
   },
 
   async onStartGame() {
@@ -58,6 +74,16 @@ Page({
   async onLeave() {
     const ok = await showConfirm('离开房间', '确定离开当前房间？');
     if (ok) { await RoomManager.leaveRoom(this._roomId); wx.navigateBack(); }
+  },
+
+  async onDisband() {
+    var ok = await showConfirm('解散房间', '确定解散当前房间？所有玩家将被移出。');
+    if (!ok) return;
+    try {
+      await RoomManager.disbandRoom(this._roomId);
+      showToast('房间已解散');
+      wx.navigateBack();
+    } catch (e) { showToast(e.message); }
   },
 
   onCopy() {

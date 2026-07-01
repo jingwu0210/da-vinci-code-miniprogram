@@ -22,7 +22,7 @@
   </view>
 
   <view class="self-area">
-    <player-hand tiles="{{myHand}}" isOwn="{{true}}" insertMode="{{game.myTurn && phase === 'inserting'}}" drawnTile="{{game.myDrawnTile}}" bind:positionSelected="onTapInsertSlot" />
+    <player-hand tiles="{{myHand}}" isOwn="{{true}}" insertMode="{{game.myTurn && phase === 'inserting'}}" drawnTile="{{game.myDrawnTile}}" aiGuessPosition="{{aiGuessPosition}}" bind:positionSelected="onTapInsertSlot" />
   </view>
 
   <view class="action-area">

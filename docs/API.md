@@ -309,7 +309,25 @@ type: 'toggleReady'
   ROOM_NOT_WAITING
 ```
 
-### 3.5 startGame
+### 3.5 disbandRoom
+
+房主解散房间，从数据库彻底删除。
+
+```
+type: 'disbandRoom'
+
+■ 入参:
+{ roomId: String }
+
+■ 出参 (success):
+{ deleted: true }
+
+■ 错误:
+  NOT_ROOM_CREATOR                  // 非房主
+  ROOM_NOT_FOUND
+```
+
+### 3.6 startGame
 
 （仅房主）开始游戏。
 
@@ -405,6 +423,16 @@ type: 'getGameState'
     myTurn:              Boolean,   // 是否轮到当前调用者
     winner:              String | null,  // 获胜者 openid（game_over 时）
     myDrawnTile:         SelfTile | null  // 当前回合自己摸的牌（drawing/inserting 阶段可见）
+  },
+
+  // ═══ 结算数据（游客本地构造 record 使用） ═══
+  settlement: {
+    mode:      String,                    // 'ai' | 'friends'
+    difficulty: String | null,            // 'easy' | 'medium' | 'hard'
+    createdAt:  ISODateString | null,     // 对局创建时间
+    turnOrder:  [String],                 // 玩家 openid 列表
+    tiles:      [Tile],                   // 所有牌（含 owner/isRevealed）
+    turnLog:    [TurnRecord],             // 完整操作日志
   }
 }
 
@@ -627,6 +655,7 @@ type: 'saveRecord'
 
 ■ 出参 (success):
 {
+  isWinner: Boolean,                 // 当前调用者是否为胜者
   record: {
     id:      String,
     mode:    'ai' | 'friends',

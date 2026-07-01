@@ -2,9 +2,10 @@
 .create-page { background: #2C3A4A; min-height: 100vh; }
 .main { padding: 32rpx; }
 .label { font-size: 24rpx; color: #8A8A90; margin: 24rpx 0 16rpx; display: block; }
-.mode-switch { display: flex; gap: 16rpx; }
-.mode-btn { flex: 1; height: 96rpx; display: flex; align-items: center; justify-content: center; background: transparent; border-bottom: 2rpx solid transparent; color: #8A8A90; font-size: 28rpx; }
-.mode-btn.active { border-bottom-color: #EBEBE5; color: #EBEBE5; }
+.tab-switch { display: flex; gap: 16rpx; margin-bottom: 32rpx; }
+.tab-btn { flex: 1; height: 96rpx; display: flex; align-items: center; justify-content: center; background: transparent; border-bottom: 2rpx solid transparent; color: #8A8A90; font-size: 28rpx; }
+.tab-btn.active { border-bottom-color: #EBEBE5; color: #EBEBE5; }
+.room-code { font-family: 'Courier New', monospace; letter-spacing: 16rpx; text-align: center; font-size: 40rpx; }
 .radio-group { display: flex; gap: 16rpx; }
 .radio { flex: 1; height: 72rpx; display: flex; align-items: center; justify-content: center; background: transparent; color: #8A8A90; font-size: 28rpx; border: 1rpx solid #3E4A58; border-radius: 8rpx; }
 .radio.active { background: rgba(235,235,229,0.08); color: #EBEBE5; border-color: #EBEBE5; }

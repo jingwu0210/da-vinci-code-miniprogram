@@ -16,7 +16,16 @@ module.exports = async function (event, caller, db) {
     if (room.password && room.password !== password) return { success: false, error: 'WRONG_PASSWORD', errorCode: 'WRONG_PASSWORD' };
     if (room.players.some(p => p.openid === caller)) return { success: false, error: 'ALREADY_IN_ROOM', errorCode: 'ALREADY_IN_ROOM' };
 
-    room.players.push({ openid: caller, nickName: '', avatarUrl: '', isReady: false, isAI: false, seatIndex: room.players.length });
+    var joinerName = '';
+    var joinerAvatar = '';
+    if (!caller.startsWith('t_')) {
+      try {
+        var profileRes = await db.collection('players').where({ openid: caller }).get();
+        if (profileRes.data && profileRes.data.length > 0) { joinerName = profileRes.data[0].nickName || ''; joinerAvatar = profileRes.data[0].avatarUrl || ''; }
+      } catch (e) {}
+    }
+    if (!joinerName) joinerName = caller.startsWith('t_') ? '游客' + caller.slice(2, 6) : caller.substring(0, 10);
+    room.players.push({ openid: caller, nickName: joinerName, avatarUrl: joinerAvatar, isReady: false, isAI: false, seatIndex: room.players.length });
     await db.collection('rooms').doc(room._id).update({
       data: { players: room.players, updatedAt: db.serverDate() },
     });

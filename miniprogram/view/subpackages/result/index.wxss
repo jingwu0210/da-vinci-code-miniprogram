@@ -1,10 +1,10 @@
-.page { min-height:100vh; background:#2C3A4A; display:flex; flex-direction:column; align-items:center; padding:48rpx 32rpx; }
+.page { height:100vh; background:#2C3A4A; display:flex; flex-direction:column; align-items:center; padding:48rpx 32rpx; overflow:hidden; position:relative; box-sizing:border-box; }
 
 .loading-ctn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .loading-text { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, #8A8A90); }
 
 /* ── 胜/负标题 ── */
-.result-header { display:flex; flex-direction:column; align-items:center; margin:32rpx 0 48rpx; }
+.result-header { display:flex; flex-direction:column; align-items:center; margin:32rpx 0 48rpx; z-index:1; }
 .result-emoji { font-size:96rpx; }
 .result-title { font-size:var(--fs-title, 44rpx); font-weight:700; margin-top:16rpx; }
 .winner .result-title { color:#C9A84C; }
@@ -29,22 +29,14 @@
 .btn-share { background:#C9A84C; color:#2C3A4A; border:none; }
 .btn-lobby { background:rgba(235,235,229,0.06); color:var(--text-primary, #EBEBE5); border:1rpx solid #3E4A58; }
 
-/* === 粒子特效 === */
-@keyframes particle-fall {
-  0%   { transform: translateY(-40rpx) scale(1); opacity: 1; }
-  100% { transform: translateY(100vh) scale(0); opacity: 0; }
+/* === 结果光晕 === */
+@keyframes win-glow {
+  0%, 100% { text-shadow: 0 0 20rpx rgba(201,168,76,0.3); }
+  50% { text-shadow: 0 0 60rpx rgba(201,168,76,0.6), 0 0 120rpx rgba(201,168,76,0.2); }
 }
-.particles { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:99; overflow:hidden; }
-.particle { position:absolute; width:8rpx; height:8rpx; border-radius:50%; animation: particle-fall 3s ease-in forwards; }
-.particle:nth-child(1)  { left:10%; animation-delay:0s; }
-.particle:nth-child(2)  { left:25%; animation-delay:0.3s; }
-.particle:nth-child(3)  { left:40%; animation-delay:0.6s; }
-.particle:nth-child(4)  { left:55%; animation-delay:0.2s; }
-.particle:nth-child(5)  { left:70%; animation-delay:0.5s; }
-.particle:nth-child(6)  { left:85%; animation-delay:0.8s; }
-.particle:nth-child(7)  { left:15%; animation-delay:0.1s; }
-.particle:nth-child(8)  { left:50%; animation-delay:0.4s; }
-.particle:nth-child(9)  { left:75%; animation-delay:0.7s; }
-.particle:nth-child(10) { left:35%; animation-delay:0.9s; }
-.win-particle  { background:#C9A84C; box-shadow:0 0 6rpx #C9A84C; }
-.lose-particle { background:#5A6A80; box-shadow:0 0 4rpx #3E4A58; }
+@keyframes lose-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.winner .result-emoji { animation: win-glow 2s ease-in-out infinite; }
+.loser .result-emoji { animation: lose-pulse 1.5s ease-in-out 3; }

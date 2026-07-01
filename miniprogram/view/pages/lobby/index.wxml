@@ -16,20 +16,17 @@
       <text class="card-arrow">›</text>
     </view>
 
-    <view class="menu-section">
-      <view class="menu-card" bindtap="onTapAiMode">
-        <view class="menu-left"><text class="menu-icon">🤖</text><view><view class="menu-title">单机人机</view><view class="menu-desc">与 AI 对战，磨练推理技巧</view></view></view>
-        <text class="menu-arrow">→</text>
+    <view class="mode-section">
+      <view class="mode-btn ai" bindtap="onTapAi">
+        <text class="mode-icon">🤖</text>
+        <view class="mode-info"><text class="mode-title">人机对战</text><text class="mode-desc">选择难度，与 AI 一决高下</text></view>
+        <text class="mode-arrow">→</text>
       </view>
-      <view class="menu-card" bindtap="onTapFriendsMode">
-        <view class="menu-left"><text class="menu-icon">👥</text><view><view class="menu-title">好友联机</view><view class="menu-desc">创建房间，邀请好友对战</view></view></view>
-        <text class="menu-arrow">→</text>
+      <view class="mode-btn friends" bindtap="onTapFriends">
+        <text class="mode-icon">👥</text>
+        <view class="mode-info"><text class="mode-title">好友联机</text><text class="mode-desc">创建/加入房间，邀请好友</text></view>
+        <text class="mode-arrow">→</text>
       </view>
-    </view>
-
-    <view class="quick-actions">
-      <button class="btn-quick" bindtap="onTapCreate">创建房间</button>
-      <button class="btn-quick-secondary" bindtap="onTapJoin">加入房间</button>
     </view>
   </scroll-view>
 
@@ -38,14 +35,24 @@
     <text class="tab" bindtap="onTapHistory">📋 历史对局</text>
   </view>
 
-  <!-- 加入房间弹窗 -->
-  <view class="modal-mask" wx:if="{{showJoinModal}}" bindtap="onCancelJoin"></view>
-  <view class="modal-panel" wx:if="{{showJoinModal}}">
-    <text class="modal-title">输入房间码</text>
-    <input class="modal-input" value="{{roomCode}}" bindinput="onRoomCodeInput" placeholder="6 位房间码" maxlength="6" focus="{{showJoinModal}}" />
+  <!-- 难度选择弹窗 -->
+  <view class="modal-mask" wx:if="{{showDifficulty}}" bindtap="onCancelDifficulty"></view>
+  <view class="modal-panel" wx:if="{{showDifficulty}}">
+    <text class="modal-title">选择 AI 难度</text>
+    <view class="diff-list">
+      <view class="diff-item {{selectedDifficulty === 'easy' ? 'active' : ''}}" data-diff="easy" bindtap="onSelectDifficulty">
+        <text class="diff-name">简单</text><text class="diff-hint">随机决策，适合新手</text>
+      </view>
+      <view class="diff-item {{selectedDifficulty === 'medium' ? 'active' : ''}}" data-diff="medium" bindtap="onSelectDifficulty">
+        <text class="diff-name">中等</text><text class="diff-hint">逻辑推理，旗鼓相当</text>
+      </view>
+      <view class="diff-item {{selectedDifficulty === 'hard' ? 'active' : ''}}" data-diff="hard" bindtap="onSelectDifficulty">
+        <text class="diff-name">困难</text><text class="diff-hint">概率矩阵，最强挑战</text>
+      </view>
+    </view>
     <view class="modal-btns">
-      <button class="modal-cancel" bindtap="onCancelJoin">取消</button>
-      <button class="modal-confirm" bindtap="onConfirmJoin">加入</button>
+      <button class="modal-cancel" bindtap="onCancelDifficulty">取消</button>
+      <button class="modal-confirm" bindtap="onConfirmAi">开始对战</button>
     </view>
   </view>
 </view>
