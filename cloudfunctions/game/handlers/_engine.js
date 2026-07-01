@@ -86,7 +86,7 @@ function createInitialState({ roomId, players, mode, difficulty }) {
 }
 
 // ── 测试用：定牌 ──
-function createControlledState({ roomId, players, mode, difficulty, hands: inputHands, firstPlayer }) {
+function createControlledState({ roomId, players, mode, difficulty, hands: inputHands, firstPlayer, poolTiles }) {
   const openids = players.map(p => p.openid);
   const allTiles = [];
   const usedKeys = new Set();
@@ -112,21 +112,34 @@ function createControlledState({ roomId, players, mode, difficulty, hands: input
     allTiles.push(...sorted);
   }
 
-  // 剩余牌归池
-  const fullDeck = createDeckTiles();
-  for (const t of fullDeck) {
-    const key = `${t.color}_${t.value}_${t.isJoker}`;
-    if (!usedKeys.has(key)) {
-      allTiles.push({ ...t, owner: 'pool', position: null, isRevealed: false });
+  // 池：指定 poolTiles → 只用指定牌；否则从完整牌组取余牌
+  if (poolTiles) {
+    for (const s of poolTiles) {
+      var v = s.isJoker ? -1 : (s.value != null ? s.value : 0);
+      var key = s.color + '_' + v + '_' + !!s.isJoker;
+      if (usedKeys.has(key)) throw new Error('Duplicate in poolTiles: ' + key);
+      usedKeys.add(key);
+      allTiles.push({ id: 't_pool_' + allTiles.length, color: s.color, value: v, isJoker: !!s.isJoker, owner: 'pool', position: null, isRevealed: false });
+    }
+  } else {
+    var fullDeck = createDeckTiles();
+    for (var ti = 0; ti < fullDeck.length; ti++) {
+      var t = fullDeck[ti];
+      var key = t.color + '_' + t.value + '_' + t.isJoker;
+      if (!usedKeys.has(key)) {
+        allTiles.push(Object.assign({}, t, { owner: 'pool', position: null, isRevealed: false }));
+      }
     }
   }
 
   const turnOrder = firstPlayer ? [firstPlayer, ...openids.filter(o => o !== firstPlayer)] : openids;
 
-  // 牌数守恒断言
-  const poolCount = allTiles.filter(t => t.owner === 'pool').length;
-  const handCount = allTiles.filter(t => t.owner !== 'pool').length;
-  if (poolCount + handCount !== 26) throw new Error(`INVARIANT: pool=${poolCount} + hands=${handCount} != 26`);
+  // 牌数守恒断言（仅完整牌组时检查，poolTiles 测试场景跳过）
+  if (!poolTiles) {
+    var poolCount = allTiles.filter(function(t) { return t.owner === 'pool'; }).length;
+    var handCount = allTiles.filter(function(t) { return t.owner !== 'pool'; }).length;
+    if (poolCount + handCount !== 26) throw new Error('INVARIANT: pool=' + poolCount + ' + hands=' + handCount + ' != 26');
+  }
 
   return { roomId, mode, difficulty, status: 'playing', phase: Phase.DRAWING,
     turnOrder, turnIndex: 0, tiles: allTiles, drawnTileId: null, winner: null, turnLog: [] };
@@ -196,6 +209,8 @@ function getClientView(gameState, playerOpenid) {
     opponents.push({ openid: oid, hand: hand.map(toOpponentTile), revealedCount: countUnrevealed(hand), drawnTileId: drawnId });
   }
 
+  // 初始 Joker 摆放阶段用 initialJokerTurn，正式回合用 turnIndex
+  var turnIdx = gameState.initialJokerTurn != null ? gameState.initialJokerTurn : gameState.turnIndex;
   return {
     gameId: gameState._id || gameState.roomId,
     roomId: gameState.roomId,
@@ -204,10 +219,10 @@ function getClientView(gameState, playerOpenid) {
     opponents,
     game: {
       phase: gameState.phase,
-      currentTurnOpenid: gameState.turnOrder[gameState.turnIndex],
+      currentTurnOpenid: gameState.turnOrder[turnIdx],
       turnNumber: (gameState.turnLog || []).filter(function(l) { return l.action === 'pass' || l.action === 'quit' || (l.action === 'guess' && !l.isCorrect); }).length + 1,
       poolRemaining: poolRemaining(tiles),
-      myTurn: gameState.turnOrder[gameState.turnIndex] === playerOpenid,
+      myTurn: gameState.turnOrder[turnIdx] === playerOpenid,
       winner: gameState.winner || null,
       myDrawnTile: gameState.drawnTileId
         ? (function() {
@@ -215,6 +230,15 @@ function getClientView(gameState, playerOpenid) {
             return (dt && dt.owner === playerOpenid) ? toSelfTile(dt) : null;
           })()
         : null,
+    },
+    // 结算页数据（游客本地构造 record 使用，不依赖 DB 直读）
+    settlement: {
+      mode: gameState.mode || 'ai',
+      difficulty: gameState.difficulty || null,
+      createdAt: gameState.createdAt || null,
+      turnOrder: gameState.turnOrder || [],
+      tiles: tiles,  // 所有牌（含 owner/isRevealed），用于计算 unrevealed 数量
+      turnLog: gameState.turnLog || [],
     },
   };
 }

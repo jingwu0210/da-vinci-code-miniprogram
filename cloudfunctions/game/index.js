@@ -7,9 +7,13 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 exports.main = async (event, context) => {
-  const caller = event.callerOpenid || cloud.getWXContext().OPENID;
-  if (!caller) {
-    return { success: false, error: 'NOT_AUTHORIZED', errorCode: 'NOT_AUTHORIZED' };
+  // 游客优先用 touristId（wx.login 后 OPENID 仍有值，不能用 OPENID 区分）
+  var isTourist = event.userType === 'tourist';
+  var caller = event.callerOpenid || (isTourist ? event.touristId : cloud.getWXContext().OPENID);
+  if (!caller) return { success: false, error: 'NOT_AUTHORIZED' };
+  // 游客 ID 格式校验
+  if (isTourist && event.touristId && !/^t_[a-z0-9]{10,20}$/.test(event.touristId)) {
+    return { success: false, error: 'INVALID_TOURIST_ID' };
   }
 
   switch (event.type) {

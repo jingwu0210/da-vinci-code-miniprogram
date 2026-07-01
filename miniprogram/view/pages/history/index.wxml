@@ -33,7 +33,7 @@
 
     <!-- 记录列表 -->
     <view class="record-list">
-      <view class="record-card" wx:for="{{records}}" wx:key="_id">
+      <view class="record-card" wx:for="{{records}}" wx:key="*this">
         <view class="record-top">
           <text class="record-mode">{{item.mode === 'ai' ? '🤖 人机' : '👥 联机'}}</text>
           <text class="record-result {{item.myWin ? 'record-win' : 'record-lose'}}">{{item.myWin ? '胜' : '负'}}</text>

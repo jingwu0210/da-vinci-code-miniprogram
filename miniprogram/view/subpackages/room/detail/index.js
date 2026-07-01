@@ -12,9 +12,19 @@ Page({
 
   async onLoad(options) {
     this._roomId = options.roomId;
+    const myOpenid = store.get('user')?.openid;
+    const isJoining = options.join === '1'; // share link: join first
+
     try {
-      const room = await RoomManager.joinRoom(this._roomId);
-      const myOpenid = store.get('user')?.openid;
+      let room;
+      if (isJoining) {
+        // Share link entry — join the room
+        room = await RoomManager.joinRoom(this._roomId);
+      } else {
+        // Creator or already joined — fetch room info
+        room = await RoomManager.getRoom(this._roomId);
+      }
+
       this.setData({
         room, isCreator: room.creatorOpenid === myOpenid,
         isReady: room.players.find(p => p.openid === myOpenid)?.isReady || false,
@@ -28,7 +38,7 @@ Page({
           wx.redirectTo({ url: buildRoute(ROUTES.BOARD, { roomId: doc.roomId }) });
         }
       });
-    } catch (e) { showToast(e.message || '加入房间失败'); }
+    } catch (e) { showToast(e.message || '加载房间失败'); }
   },
 
   onUnload() { if (this._watcher) this._watcher.close(); },

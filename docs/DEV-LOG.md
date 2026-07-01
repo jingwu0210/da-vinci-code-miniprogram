@@ -1,6 +1,38 @@
 # 开发日志
 
-> 最后更新: 2026-06-30
+> 最后更新: 2026-07-01
+
+---
+
+## 2026-06-30 产出（续）
+
+### 双登录体系重构：游客模式 + 微信授权登录
+
+| 变更 | 说明 |
+|------|------|
+| **游客 UUID** | 前端 `app.js` 启动时生成 `t_` + 13位 base36 UUID，storage 持久化。替代旧的 `guest_${Date.now()}` 假ID |
+| **store 持久化** | user/userType 写入时自动同步 storage，onLoad 恢复 |
+| **三层身份 fallback** | 所有云函数入口：`callerOpenid → OPENID → touristId`，游客 UUID 格式校验 |
+| **utils/login.js** | 新建 — getTouristId/wxLogin/logout/migrateLocalRecords/saveLocalRecord/getLocalRecords |
+| **调用封装** | game-call/room-call/user-call 自动附加 touristId |
+| **history 云函数** | 游客不调（仅本地 cache）；微信用户正常云端查询 |
+| **user 云函数** | +getOpenid（游客返回null）+ migrateRecords（游客→微信批量迁移） |
+| **auth-service** | tryGuestMode 改用 UUID |
+| **settings 页** | 双界面：游客显示「微信登录」+「迁移本地数据」；微信用户显示头像昵称+「退出登录」 |
+| **result 页** | 游客本地构造 record → historyCache.prepend；微信用户调 saveRecord 云函数 |
+| **history 页** | 游客读本地 cache；微信用户调 getRecords 云函数 |
+| **agreement 页** | 隐私政策追加游客/微信数据存储区别说明 |
+| **constants** | MAX_LOCAL_HISTORY 20→10 |
+| **缓存依赖修复** | history-cache.js 中的 `../common/` → `./`，`../../utils/` → `../utils/` |
+| **退出游戏修复** | board 页 onTapQuit 设 _alive=false 防止退出来时 watcher 触发AI |
+| **初始Joker修复** | insertTile + getGameState 用 initialJokerTurn 替代 turnIndex |
+| **结算输赢修复** | saveRecord 返回服务端 isWinner，不依赖客户端 openid 对比 |
+| **分享胜负文案** | resultShareConfig 根据胜负切换分享文案 |
+| **CloudBase 配置** | 需开启「未登录用户访问权限」；games/rooms 读权限设为所有用户 |
+
+**游客限制**: 每小时最多创建 10 个房间，UUID 格式校验，孤儿房间 >6h 自动清理。
+
+**不变项**: login 页、lobby 页、board 页、所有 game/room handler 不修改。
 
 ---
 

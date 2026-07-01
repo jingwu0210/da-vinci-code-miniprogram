@@ -31,7 +31,7 @@ module.exports = {
   DEFAULT_PAGE_SIZE:  20,
 
   /** 缓存 */
-  MAX_LOCAL_HISTORY:  20,       // 本地历史记录上限
+  MAX_LOCAL_HISTORY:  10,       // 本地历史记录上限（游客用）
   MAX_CACHE_AGE_MS:   7 * 24 * 3600 * 1000,  // 缓存有效期 7 天
 
   /** 动画 */

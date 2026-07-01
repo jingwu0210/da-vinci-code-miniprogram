@@ -10,10 +10,10 @@ Page({
   data: { user: {}, winRate: 0, showJoinModal: false, roomCode: '' },
 
   onShow() {
-    const user = store.get('user') || {};
-    const stats = user.stats || {};
-    const total = stats.totalGames || 0;
-    const wins = stats.wins || 0;
+    var user = store.get('user') || {};
+    var stats = user.stats || {};
+    var total = stats.totalGames || 0;
+    var wins = stats.wins || 0;
     this.setData({ user, winRate: total > 0 ? Math.round((wins / total) * 100) : 0 });
   },
 
@@ -35,5 +35,12 @@ Page({
       this.setData({ showJoinModal: false });
       wx.navigateTo({ url: buildRoute(ROUTES.ROOM_DETAIL, { roomId: code }) });
     } catch (e) { showToast(e.message || '加入失败'); }
+  },
+
+  onTapExit() {
+    var login = require('../../../utils/login');
+    var u = store.get('user');
+    if (store.get('userType') === 'wechat' || (u && !u.isGuest)) login.logout();
+    wx.reLaunch({ url: ROUTES.LOGIN });
   },
 });

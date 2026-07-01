@@ -7,12 +7,17 @@ const logger = require('../../utils/logger');
 
 const FUNCTION_NAME = 'game';
 
-async function call(type, data = {}) {
+var login = require('../../utils/login');
+
+async function call(type, data) {
+  data = data || {};
+  data.touristId = login.getTouristId();
+  data.userType = login.getUserType();
   try {
-    logger.debug('GameCall', `type=${type}`, data);
-    const resp = await wx.cloud.callFunction({
+    logger.debug('GameCall', 'type=' + type, data);
+    var resp = await wx.cloud.callFunction({
       name: FUNCTION_NAME,
-      data: { type, ...data },
+      data: Object.assign({ type: type }, data),
     });
     return resp.result;
   } catch (e) {

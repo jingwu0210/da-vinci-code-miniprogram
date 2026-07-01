@@ -28,7 +28,7 @@
     </view>
     <view class="section">
       <view class="h2">2. 信息存储</view>
-      <view class="text">您的个人信息存储于腾讯云 CloudBase 安全环境中，遵循微信云开发的数据安全规范。</view>
+      <view class="text">微信登录用户的对局记录存储在腾讯云 CloudBase 云端数据库中，与您的微信 OpenID 绑定，支持跨设备同步。游客模式的对局数据仅保存在当前设备本地缓存（最多 10 条），清除小程序数据或更换设备后数据将永久丢失。退出登录后切回游客模式，已存云端的数据不会丢失，下次登录可恢复。</view>
     </view>
     <view class="section">
       <view class="h2">3. 信息使用</view>

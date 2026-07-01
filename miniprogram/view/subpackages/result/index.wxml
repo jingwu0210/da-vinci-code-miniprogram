@@ -33,7 +33,7 @@
       <view class="player-row" wx:for="{{record.players}}" wx:key="openid">
         <text class="player-rank">{{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📋'}}</text>
         <text class="player-name {{item.isWinner ? 'winner-name' : ''}}">{{item.nickName}}{{item.isWinner ? ' (胜)' : ''}}</text>
-        <text class="player-tiles">剩 {{item.tilesRemaining}} 张</text>
+        <text class="player-tiles">{{item.tilesRemaining === 0 ? '全部翻开' : '剩 ' + item.tilesRemaining + ' 张'}}</text>
       </view>
     </view>
 

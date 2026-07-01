@@ -18,6 +18,7 @@ module.exports = async function(event, caller, db) {
   var gs = doc.data;
   var aiPlayer = gs.turnOrder[gs.turnIndex];
   var strategy = STRATEGIES[difficulty] || STRATEGIES.easy;
+  console.log('[AI-MOVE] turnIndex=' + gs.turnIndex + ' turnOrder=' + JSON.stringify(gs.turnOrder) + ' aiPlayer=' + aiPlayer + ' phase=' + gs.phase);
 
   // Step 1: Joker 放置
   if (gs.phase === E.Phase.INSERTING && gs.drawnTileId) {

@@ -52,7 +52,21 @@ const res = await wx.cloud.callFunction({
 
 ### 1.3 身份识别
 
-云函数内部通过 `cloud.getWXContext().OPENID` 获取当前调用者身份，前端不可伪造。
+云函数采用三层 fallback 身份解析：
+
+```javascript
+const caller = event.callerOpenid || cloud.getWXContext().OPENID || event.touristId;
+```
+
+| 场景 | callerOpenid | OPENID | touristId | 最终身份 |
+|------|:---:|:---:|:---:|------|
+| AI 操作 | ✅ | — | — | AI openid |
+| 微信登录用户 | — | ✅ | — | 真实 OPENID |
+| 游客 | — | undefined | ✅ | UUID |
+
+- 游客 ID 由前端生成：`t_` + 13 位 base36 随机字符串，持久化 storage
+- 所有客户端调用自动附带 `touristId` 参数
+- CloudBase 需开启「未登录用户访问权限」
 
 ### 1.4 命名约定
 
@@ -123,6 +137,37 @@ type: 'getProfile'
 
 ■ 错误:
   USER_NOT_FOUND
+```
+
+### 2.2a getOpenid
+
+获取当前用户的真实 OPENID（游客调用返回 null）。
+
+```
+type: 'getOpenid'
+
+■ 入参: 无
+
+■ 出参 (success):
+{ openid: String | null }
+
+■ 说明: 可用于前端判断是否有微信登录态
+```
+
+### 2.2b migrateRecords
+
+游客切换微信登录后，将本地缓存的游客对局批量迁移到云端。
+
+```
+type: 'migrateRecords'
+
+■ 入参:
+{ records: [{ mode, players, totalTurns, duration, ... }] }
+
+■ 出参 (success):
+{ migrated: Integer }
+
+■ 说明: 仅在 userType='wechat' 时调用
 ```
 
 ### 2.3 updateProfile

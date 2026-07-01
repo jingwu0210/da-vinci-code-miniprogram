@@ -1,4 +1,8 @@
 .lobby-page { background: #2C3A4A; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; width: 100vw; box-sizing: border-box; }
+.top-bar { display: flex; align-items: center; padding: 88rpx 32rpx 0; height: 128rpx; }
+.top-exit { font-size: 28rpx; color: #8A8A90; }
+.top-title { flex: 1; text-align: center; font-size: 32rpx; color: #EBEBE5; font-weight: 600; }
+.top-spacer { width: 80rpx; }
 .main { flex: 1; padding: 32rpx; overflow-y: auto; overflow-x: hidden; width: 100%; box-sizing: border-box; }
 .user-card {
   height: 128rpx; display: flex; align-items: center; gap: 16rpx;

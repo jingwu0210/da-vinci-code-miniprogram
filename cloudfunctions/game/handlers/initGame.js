@@ -4,12 +4,12 @@
 const GameEngine = require('./_engine');
 
 module.exports = async function (event, caller, db) {
-  const { roomId, players, mode, difficulty, testHands, testFirstPlayer } = event;
+  const { roomId, players, mode, difficulty, testHands, testFirstPlayer, poolTiles } = event;
   if (!roomId || !players || !mode) return { success: false, error: 'INVALID_PARAMS' };
 
   try {
     const gameState = testHands
-      ? GameEngine.createControlledState({ roomId, players, mode, difficulty, hands: testHands, firstPlayer: testFirstPlayer })
+      ? GameEngine.createControlledState({ roomId, players, mode, difficulty, hands: testHands, firstPlayer: testFirstPlayer, poolTiles: poolTiles })
       : GameEngine.createInitialState({ roomId, players, mode, difficulty });
 
     // 收集所有玩家初始 Joker

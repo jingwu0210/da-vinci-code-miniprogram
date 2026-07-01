@@ -13,7 +13,9 @@ module.exports = async function (event, caller, db) {
     if (!doc.data) return { success: false, error: 'GAME_NOT_FOUND' };
     const gs = doc.data;
 
-    if (gs.turnOrder[gs.turnIndex] !== caller) return { success: false, error: 'NOT_YOUR_TURN' };
+    // 初始 Joker 摆放用 initialJokerTurn，正常回合用 turnIndex
+    var currentTurnIdx = gs.initialJokerTurn != null ? gs.initialJokerTurn : gs.turnIndex;
+    if (gs.turnOrder[currentTurnIdx] !== caller) return { success: false, error: 'NOT_YOUR_TURN' };
     if (gs.phase !== E.Phase.INSERTING) return { success: false, error: 'WRONG_PHASE' };
     if (!gs.drawnTileId) return { success: false, error: 'NO_DRAWN_TILE' };
 

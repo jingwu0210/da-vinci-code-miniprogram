@@ -34,6 +34,7 @@ const AuthService = {
       isGuest:   false,
       stats:     profile.stats,
     });
+    store.set('userType', 'wechat');
     logger.info('AuthService', 'Session initialized', { openid: profile.openid });
   },
 
@@ -41,13 +42,16 @@ const AuthService = {
    * 游客模式。
    */
   tryGuestMode() {
+    var login = require('../../utils/login');
+    var tid = login.getTouristId();
     store.set('user', {
-      openid:    `guest_${Date.now()}`,
-      nickName:  '游客',
+      openid:    tid,
+      nickName:  '游客' + tid.slice(2, 6),
       avatarUrl: '',
       isGuest:   true,
       stats:     null,
     });
+    store.set('userType', 'tourist');
     logger.info('AuthService', 'Guest mode activated');
   },
 

@@ -13,7 +13,17 @@
       "Bash(sed -i '' '1,24s/.*//' /Users/jingwu/WeChatProjects/da-vinci-code-miniprogram/miniprogram/view/pages/lobby/index.wxss)",
       "Bash(sed -i '' '/^$/d' /Users/jingwu/WeChatProjects/da-vinci-code-miniprogram/miniprogram/view/pages/lobby/index.wxss)",
       "Bash(sed -i '' '/const local = require/i\\\\ *)",
-      "Bash(sed -i '' \"/onClearCache/,/}\\);/s/}\\);/  onTapLogout\\(\\) {\\\\n    store.set\\('user', null\\);\\\\n    wx.redirectTo\\({ url: ROUTES.LOGIN }\\);\\\\n  },\\\\n}\\);/\" view/pages/settings/index.js)"
+      "Bash(sed -i '' \"/onClearCache/,/}\\);/s/}\\);/  onTapLogout\\(\\) {\\\\n    store.set\\('user', null\\);\\\\n    wx.redirectTo\\({ url: ROUTES.LOGIN }\\);\\\\n  },\\\\n}\\);/\" view/pages/settings/index.js)",
+      "Bash(node *)",
+      "WebSearch",
+      "mcp__cloudbase-mcp__manageFunctions",
+      "Bash(sed -i '' 's/E.sortKey\\(handWithout\\\\[i-1\\\\]\\)\\\\[0\\\\] <= E.sortKey\\(drawn\\)\\\\[0\\\\]/E.sortKey\\(handWithout[i-1]\\)[0] <= E.sortKey\\(drawn\\)[0] \\\\&\\\\& \\(E.sortKey\\(handWithout[i-1]\\)[0] !== E.sortKey\\(drawn\\)[0] || E.sortKey\\(handWithout[i-1]\\)[1] <= E.sortKey\\(drawn\\)[1]\\)/' makeGuess.js)",
+      "Bash(sed -i '' 's/E.sortKey\\(drawn\\)\\\\[0\\\\] <= E.sortKey\\(handWithout\\\\[i\\\\]\\)\\\\[0\\\\]/E.sortKey\\(drawn\\)[0] <= E.sortKey\\(handWithout[i]\\)[0] \\\\&\\\\& \\(E.sortKey\\(drawn\\)[0] !== E.sortKey\\(handWithout[i]\\)[0] || E.sortKey\\(drawn\\)[1] <= E.sortKey\\(handWithout[i]\\)[1]\\)/' makeGuess.js)",
+      "Bash(sed -i '' 's/E.sortKey\\(handWithout\\\\[i-1\\\\]\\)\\\\[0\\\\] <= E.sortKey\\(drawn\\)\\\\[0\\\\]/E.sortKey\\(handWithout[i-1]\\)[0] <= E.sortKey\\(drawn\\)[0] \\\\&\\\\& \\(E.sortKey\\(handWithout[i-1]\\)[0] !== E.sortKey\\(drawn\\)[0] || E.sortKey\\(handWithout[i-1]\\)[1] <= E.sortKey\\(drawn\\)[1]\\)/' passTurn.js)",
+      "Bash(sed -i '' 's/E.sortKey\\(drawn\\)\\\\[0\\\\] <= E.sortKey\\(handWithout\\\\[i\\\\]\\)\\\\[0\\\\]/E.sortKey\\(drawn\\)[0] <= E.sortKey\\(handWithout[i]\\)[0] \\\\&\\\\& \\(E.sortKey\\(drawn\\)[0] !== E.sortKey\\(handWithout[i]\\)[0] || E.sortKey\\(drawn\\)[1] <= E.sortKey\\(handWithout[i]\\)[1]\\)/' passTurn.js)",
+      "Bash(sed -i '' 's/const handWithout = hand.filter\\(t => t.id !== gs.drawnTileId\\);/const handWithout = hand.filter\\(function\\(t\\) { return t.id !== gs.drawnTileId \\\\&\\\\& !t.isJoker; }\\);/' makeGuess.js)",
+      "Bash(sed -i '' 's/const handWithout = hand.filter\\(t => t.id !== gs.drawnTileId\\);/const handWithout = hand.filter\\(function\\(t\\) { return t.id !== gs.drawnTileId \\\\&\\\\& !t.isJoker; }\\);/' passTurn.js)",
+      "Bash(git -C /Users/jingwu/WeChatProjects/da-vinci-code-miniprogram diff --stat HEAD)"
     ]
   },
   "enabledMcpjsonServers": [

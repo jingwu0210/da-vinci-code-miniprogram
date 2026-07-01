@@ -28,6 +28,7 @@ Page({
   _aiPending: false,
   _guessedCorrectly: false,
   _alive: false,
+  _gameOver: false,
 
   async onLoad(options) {
     this._alive = true;
@@ -180,7 +181,7 @@ Page({
 
   onTapQuit() {
     var self = this;
-    showConfirm('退出对局', '退出后本局将判负，确定？').then(function (ok) {
+    showConfirm('退出对局', '退出本局游戏，将不计入历史对局。确定？').then(function (ok) {
       if (!ok) return;
       self._alive = false;  // 阻止 watcher 在退出过程中再触发 AI
       self._aiPending = false;
@@ -228,7 +229,9 @@ Page({
           wx.showToast({ title: a.isCorrect ? '猜对了！' : '猜错了', icon: 'none', duration: 1200 });
         }, 1600);
         if (a.gameOver) {
-          setTimeout(function () { self._goResult(null); }, 2000);
+          // AI 获胜 → 传入 AI openid 作为 winner
+          var aiWinner = self._getAiOpenid();
+          setTimeout(function () { self._goResult(aiWinner); }, 2000);
           return;
         }
       } else if (a.action === 'pass') {
@@ -297,7 +300,17 @@ Page({
     // AI 触发已移至玩家动作（onTapPass / onConfirmGuess wrong）和 onLoad 初始检测
   },
 
+  _getAiOpenid() {
+    var opponents = this.data.opponents || [];
+    for (var i = 0; i < opponents.length; i++) {
+      if (opponents[i].openid && opponents[i].openid.indexOf('ai_') === 0) return opponents[i].openid;
+    }
+    return '';
+  },
+
   _goResult(winner) {
+    if (this._gameOver) return;
+    this._gameOver = true;
     wx.redirectTo({ url: buildRoute(ROUTES.RESULT, { gameId: this._gameId, winner: winner || '' }) });
   },
 });

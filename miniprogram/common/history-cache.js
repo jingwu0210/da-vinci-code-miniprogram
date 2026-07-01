@@ -3,9 +3,9 @@
  * 依赖: ../storage-keys, ../../utils/local-storage, ../../common/constants
  */
 
-const KEYS = require('../common/storage-keys');
-const storage = require('../../utils/local-storage');
-const { MAX_LOCAL_HISTORY } = require('../../common/constants');
+const KEYS = require('./storage-keys');
+const storage = require('../utils/local-storage');
+const { MAX_LOCAL_HISTORY } = require('./constants');
 
 function load() {
   return storage.get(KEYS.LOCAL_HISTORY, []);

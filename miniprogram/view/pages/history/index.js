@@ -3,6 +3,8 @@
  */
 const HistoryService = require('../../../service/history/history-service');
 const { ROUTES } = require('../../../common/routes');
+const login = require('../../../utils/login');
+const store = require('../../../common/store');
 
 Page({
   data: {
@@ -12,9 +14,13 @@ Page({
     hasMore: true,
     page: 1,
     empty: false,
+    userType: 'tourist',
   },
 
   async onLoad() {
+    var ut = login.getUserType();
+    console.log('[history] onLoad userType=' + ut + ' storeUserType=' + (store.get('userType') || '?'));
+    this.setData({ userType: ut });
     await this._loadPage(1);
   },
 
@@ -30,38 +36,38 @@ Page({
 
   async _loadPage(page) {
     try {
-      const app = getApp();
-      const myOpenid = app.globalData?.myOpenid || '';
-      const result = await HistoryService.getRecords(page, 20);
-      var records = page === 1 ? result.records : [...this.data.records, ...result.records];
+      // 游客: 读本地缓存
+      if (login.getUserType() === 'tourist') {
+        var all = login.getLocalRecords();
+        console.log('[history] tourist mode, local records=' + all.length);
+        var pageSize = 20;
+        var paged = all.slice((page - 1) * pageSize, page * pageSize);
+        var records = page === 1 ? paged : this.data.records.concat(paged);
+        var hasMore = page * pageSize < all.length;
+        console.log('[history] tourist: all=' + all.length + ' records=' + records.length);
+        try {
+          var s = _calcStats(records);
+          var fmt = _fmtRecords(records);
+          console.log('[history] fmt ok, count=' + fmt.length);
+          this.setData({ records: fmt, stats: s, hasMore: hasMore, page: page, loading: false, empty: records.length === 0 }, function() {
+            console.log('[history] setData callback, stats=' + JSON.stringify(this.data.stats));
+          }.bind(this));
+          console.log('[history] after setData, stats=' + JSON.stringify(this.data.stats));
+        } catch(e) {
+          console.log('[history] ERROR:', e.message);
+        }
+        return;
+      }
 
-      // 格式化记录（WXML 不支持 .toFixed() 等方法调用）
-      records = records.map(function(r) {
-        var dur = r.duration || 0;
-        var durStr = dur >= 60 ? Math.floor(dur / 60) + '分' + (dur % 60) + '秒' : dur + '秒';
-        var dateStr = r.createdAt ? r.createdAt.substring(0, 10) : '';
-        // 胜负标记
-        var app = getApp();
-        var myOid = app.globalData?.myOpenid || '';
-        var me = (r.players || []).find(function(p) { return p.openid === myOid; });
-        return Object.assign({}, r, { durStr: durStr, dateStr: dateStr, myWin: me && me.isWinner });
-      });
+      // 微信用户: 云端查询
+      var result = await HistoryService.getRecords(page, 20);
+      var records = page === 1 ? result.records : this.data.records.concat(result.records);
+      records = _fmtRecords(records);
 
-      // 计算统计
-      let wins = 0;
-      records.forEach(r => {
-        const me = (r.players || []).find(p => p.openid === myOpenid);
-        if (me && me.isWinner) wins++;
-      });
-      const stats = {
-        totalGames: records.length,  // 本地 count，后续可从云端获取总计数
-        wins,
-        winRate: records.length > 0 ? (wins / records.length * 100).toFixed(0) + '%' : '0%',
-      };
-
+      console.log('[history] records=' + records.length + ' first=' + JSON.stringify(records[0]));
       this.setData({
-        records,
-        stats,
+        records: records,
+        stats: _calcStats(records),
         hasMore: result.hasMore,
         page: result.page,
         loading: false,
@@ -72,3 +78,30 @@ Page({
     }
   },
 });
+
+function _fmtRecords(records) {
+  return records.map(function(r) {
+    var dur = r.duration || 0;
+    return Object.assign({}, r, {
+      durStr: dur >= 60 ? Math.floor(dur / 60) + '分' + (dur % 60) + '秒' : dur + '秒',
+      dateStr: (r.createdAt && typeof r.createdAt === 'string') ? r.createdAt.substring(0, 10) : '',
+      myWin: (r.players || []).some(function(p) { return p.isWinner && p.nickName !== 'AI'; }),
+    });
+  });
+}
+
+function _calcStats(records) {
+  var wins = 0;
+  records.forEach(function(r) {
+    var me = (r.players || []).find(function(p) { return p.nickName !== 'AI'; });
+    console.log('[history] calcStats: me=' + JSON.stringify(me) + ' winner=' + (me && me.isWinner));
+    if (me && me.isWinner) wins++;
+  });
+  var result = {
+    totalGames: records.length,
+    wins: wins,
+    winRate: records.length > 0 ? (wins / records.length * 100).toFixed(0) + '%' : '0%',
+  };
+  console.log('[history] calcStats result:', JSON.stringify(result));
+  return result;
+}

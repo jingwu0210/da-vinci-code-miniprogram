@@ -1,20 +1,12 @@
 <!-- 设置页 -->
 <view class="settings-page">
   <view class="section">
-    <view class="label">个人信息 (点击设置)</view>
-    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-      <image class="s-avatar" src="{{user.avatarUrl}}" mode="aspectFill" wx:if="{{user.avatarUrl}}"/>
-      <view class="s-avatar" wx:else>👤</view>
-    </button>
-    <input class="s-input" type="nickname" placeholder="昵称" value="{{user.nickName}}" bindinput="onNicknameInput" />
-  </view>
-  <view class="section">
     <view class="label">游戏设置</view>
     <view class="row"><text>音效</text><switch checked="{{settings.soundEnabled}}" bindchange="onToggleSound" /></view>
     <view class="row"><text>振动</text><switch checked="{{settings.vibrationEnabled}}" bindchange="onToggleVibration" /></view>
   </view>
-  <view class="section">
-    <view class="label">账号</view>
-    <view class="row" bindtap="onTapLogout"><text>退出登录</text><text class="row-arrow">›</text></view>
+  <view class="section" wx:if="{{userType !== 'wechat'}}">
+    <view class="label">数据</view>
+    <view class="row" bindtap="onClearHistory"><text>清除历史对局</text><text class="row-arrow">›</text></view>
   </view>
 </view>

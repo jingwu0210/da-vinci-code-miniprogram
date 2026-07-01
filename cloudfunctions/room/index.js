@@ -6,8 +6,12 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 exports.main = async (event, context) => {
-  const caller = cloud.getWXContext().OPENID;
-  if (!caller) return { success: false, error: 'NOT_AUTHORIZED', errorCode: 'NOT_AUTHORIZED' };
+  var isTourist = event.userType === 'tourist';
+  var caller = isTourist ? event.touristId : cloud.getWXContext().OPENID;
+  if (!caller) return { success: false, error: 'NOT_AUTHORIZED' };
+  if (isTourist && event.touristId && !/^t_[a-z0-9]{10,20}$/.test(event.touristId)) {
+    return { success: false, error: 'INVALID_TOURIST_ID' };
+  }
 
   switch (event.type) {
     case 'createRoom':   return require('./handlers/createRoom')(event, caller, db);

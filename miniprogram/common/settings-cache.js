@@ -3,8 +3,8 @@
  * 依赖: ../storage-keys, ../../utils/local-storage
  */
 
-const KEYS = require('../common/storage-keys');
-const storage = require('../../utils/local-storage');
+const KEYS = require('./storage-keys');
+const storage = require('../utils/local-storage');
 
 const DEFAULT_SETTINGS = {
   soundEnabled: true,

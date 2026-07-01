@@ -1,5 +1,10 @@
 <!-- 大厅页 -->
 <view class="lobby-page">
+  <view class="top-bar">
+    <text class="top-exit" catchtap="onTapExit">‹ 退出</text>
+    <text class="top-title">达芬奇密码</text>
+    <view class="top-spacer"></view>
+  </view>
   <scroll-view class="main" scroll-y>
     <view class="user-card" bindtap="onTapSettings">
       <image class="avatar-img" src="{{user.avatarUrl}}" mode="aspectFill" wx:if="{{user.avatarUrl}}"/>

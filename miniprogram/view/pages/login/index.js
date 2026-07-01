@@ -19,7 +19,7 @@ Page({
 
   onLoad(options) {
     this._roomId = options.roomId || null;
-    const user = store.get('user');
+    var user = store.get('user');
     if (user && !user.isGuest) { this._goLobby(); return; }
     this.setData({ loading: false });
   },

@@ -3,14 +3,18 @@
  */
 
 const logger = require('../../utils/logger');
+var login = require('../../utils/login');
 
 const FUNCTION_NAME = 'room';
 
-async function call(type, data = {}) {
+async function call(type, data) {
+  data = data || {};
+  data.touristId = login.getTouristId();
+  data.userType = login.getUserType();
   try {
-    const resp = await wx.cloud.callFunction({
+    var resp = await wx.cloud.callFunction({
       name: FUNCTION_NAME,
-      data: { type, ...data },
+      data: Object.assign({ type: type }, data),
     });
     return resp.result;
   } catch (e) {
