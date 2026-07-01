@@ -28,3 +28,23 @@
 .btn { width:100%; height:96rpx; border-radius:var(--radius-sm, 8rpx); font-size:var(--fs-body, 28rpx); display:flex; align-items:center; justify-content:center; }
 .btn-share { background:#C9A84C; color:#2C3A4A; border:none; }
 .btn-lobby { background:rgba(235,235,229,0.06); color:var(--text-primary, #EBEBE5); border:1rpx solid #3E4A58; }
+
+/* === 粒子特效 === */
+@keyframes particle-fall {
+  0%   { transform: translateY(-40rpx) scale(1); opacity: 1; }
+  100% { transform: translateY(100vh) scale(0); opacity: 0; }
+}
+.particles { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:99; overflow:hidden; }
+.particle { position:absolute; width:8rpx; height:8rpx; border-radius:50%; animation: particle-fall 3s ease-in forwards; }
+.particle:nth-child(1)  { left:10%; animation-delay:0s; }
+.particle:nth-child(2)  { left:25%; animation-delay:0.3s; }
+.particle:nth-child(3)  { left:40%; animation-delay:0.6s; }
+.particle:nth-child(4)  { left:55%; animation-delay:0.2s; }
+.particle:nth-child(5)  { left:70%; animation-delay:0.5s; }
+.particle:nth-child(6)  { left:85%; animation-delay:0.8s; }
+.particle:nth-child(7)  { left:15%; animation-delay:0.1s; }
+.particle:nth-child(8)  { left:50%; animation-delay:0.4s; }
+.particle:nth-child(9)  { left:75%; animation-delay:0.7s; }
+.particle:nth-child(10) { left:35%; animation-delay:0.9s; }
+.win-particle  { background:#C9A84C; box-shadow:0 0 6rpx #C9A84C; }
+.lose-particle { background:#5A6A80; box-shadow:0 0 4rpx #3E4A58; }

@@ -111,3 +111,29 @@
 .size-large  .ov-joker { font-size: 40rpx; }
 .size-medium .ov-joker { font-size: 32rpx; }
 .size-small  .ov-joker { font-size: 26rpx; }
+
+/* === 推倒动画 === */
+@keyframes tile-flip {
+  0%   { transform: rotate(0deg) scaleY(1); }
+  15%  { transform: rotate(-3deg) scaleY(1); }
+  30%  { transform: rotate(3deg) scaleY(1); }
+  45%  { transform: rotate(0deg) scaleY(0.8); }
+  60%  { transform: rotate(0deg) scaleY(0.15); }
+  70%  { transform: rotate(0deg) scaleY(0.08); opacity: 1; }
+  85%  { transform: rotate(0deg) scaleY(0.8); }
+  100% { transform: rotate(0deg) scaleY(1); opacity: 1; }
+}
+.was-revealed .tile-inner {
+  animation: tile-flip 0.8s ease-out forwards;
+}
+/* 数字浮现：推倒过程中逐步显现 */
+@keyframes reveal-number {
+  0%, 55% { opacity: 0; }
+  65% { opacity: 0.3; }
+  80% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+.was-revealed .reveal-overlay.show .ov-num,
+.was-revealed .reveal-overlay.show .ov-joker {
+  animation: reveal-number 0.8s ease-out forwards;
+}

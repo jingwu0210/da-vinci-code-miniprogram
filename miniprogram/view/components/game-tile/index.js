@@ -15,11 +15,14 @@ Component({
   data: {
     animData: null,
     showOverlay: false,
+    wasRevealed: false,
   },
 
   observers: {
     'tile.isRevealed': function(isRevealed) {
-      if (isRevealed) this.setData({ showOverlay: true });
+      if (isRevealed && !this.data.wasRevealed) {
+        this.setData({ showOverlay: true, wasRevealed: true });
+      }
     },
   },
 

@@ -1,1 +1,8 @@
-/* pages/tutorial */
+.page { background:#2C3A4A; min-height:100vh; display:flex; flex-direction:column; }
+.swiper { flex:1; }
+.step { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80rpx 48rpx; text-align:center; }
+.step-emoji { font-size:80rpx; margin-bottom:32rpx; }
+.step-title { font-size:36rpx; color:#EBEBE5; font-weight:700; margin-bottom:24rpx; }
+.step-desc { font-size:28rpx; color:#8A8A90; line-height:1.8; }
+.btn-bar { padding:32rpx; }
+.btn-back { width:100%; height:88rpx; background:rgba(235,235,229,0.06); border:1rpx solid #3E4A58; border-radius:8rpx; color:#8A8A90; font-size:28rpx; }

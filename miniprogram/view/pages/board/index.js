@@ -4,6 +4,7 @@
 const GameManager = require('../../../service/game/game-manager');
 const { ROUTES, buildRoute } = require('../../../common/routes');
 const { showConfirm, showToast } = require('../../../common/modal-helper');
+var audio = require('../../../utils/audio');
 const store = require('../../../common/store');
 const { Phase, Difficulty } = require('../../../common/enums');
 const { findValidInsertPositions } = require('../../../utils/sort-hand');
@@ -140,10 +141,12 @@ Page({
         if (result.isCorrect) {
           self._guessedCorrectly = true;
           wx.showToast({ title: '猜对了！', icon: 'success', duration: 1000 });
+          audio.vibrate('medium');
           self.setData({ guessTarget: null, canEndTurn: true });
         } else {
           self._guessedCorrectly = false;
           wx.showToast({ title: '猜错了！', icon: 'none', duration: 2000 });
+          audio.vibrate('light');
           self.setData({ guessTarget: null });
           // 猜错 → 触发 AI
           if (self._alive && !state.game.myTurn && self._isAi) setTimeout(function () { self._triggerAi(); }, 800);

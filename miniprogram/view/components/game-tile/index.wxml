@@ -1,5 +1,5 @@
 <!-- game-tile 竖立牌 + 推倒动画(wx.createAnimation) -->
-<view class="tile-wrapper size-{{size}} {{selected ? 'selected' : ''}} {{disabled ? 'disabled' : ''}} {{drawn ? 'drawn' : ''}}" bindtap="onTap">
+<view class="tile-wrapper size-{{size}} {{selected ? 'selected' : ''}} {{disabled ? 'disabled' : ''}} {{drawn ? 'drawn' : ''}} {{wasRevealed ? 'was-revealed' : ''}}" bindtap="onTap">
   <view class="tile-thickness {{tile.color === 'black' ? 'thick-black' : 'thick-white'}}"></view>
 
   <!-- 主体（动画作用于此） -->
