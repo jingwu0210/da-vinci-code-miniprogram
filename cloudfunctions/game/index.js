@@ -9,7 +9,8 @@ const db = cloud.database();
 exports.main = async (event, context) => {
   // 游客优先用 touristId（wx.login 后 OPENID 仍有值，不能用 OPENID 区分）
   var isTourist = event.userType === 'tourist';
-  var caller = event.callerOpenid || (isTourist ? event.touristId : cloud.getWXContext().OPENID);
+  // callerOpenid 仅跨云函数调用时可信任（由 room.startGame 设置 _internal 标记）
+  var caller = (event._internal && event.callerOpenid) ? event.callerOpenid : (isTourist ? event.touristId : cloud.getWXContext().OPENID);
   if (!caller) return { success: false, error: 'NOT_AUTHORIZED' };
   // 游客 ID 格式校验
   if (isTourist && event.touristId && !/^t_[a-z0-9]{10,20}$/.test(event.touristId)) {

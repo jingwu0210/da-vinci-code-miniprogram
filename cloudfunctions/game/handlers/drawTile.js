@@ -6,6 +6,7 @@ const E = require('./_engine');
 module.exports = async function (event, caller, db) {
   const { gameId, color } = event;
   if (!gameId || !color) return { success: false, error: 'INVALID_PARAMS' };
+  if (!['black', 'white'].includes(color)) return { success: false, error: 'INVALID_COLOR' };
 
   try {
     const doc = await db.collection('games').doc(gameId).get();

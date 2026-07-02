@@ -8,6 +8,7 @@ module.exports = async function (event, caller, db) {
   if (!gameId || !targetOpenid || position === undefined || value === undefined) {
     return { success: false, error: 'INVALID_PARAMS' };
   }
+  if (value < -1 || value > 11) return { success: false, error: 'INVALID_VALUE' };
 
   try {
     const doc = await db.collection('games').doc(gameId).get();

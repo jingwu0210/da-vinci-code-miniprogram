@@ -27,7 +27,7 @@ module.exports = async function (event, caller, db) {
     // 调用 game 云函数，显式传入 callerOpenid 避免跨云函数丢失身份
     const gameResult = await cloud.callFunction({
       name: 'game',
-      data: { type: 'initGame', callerOpenid: caller, roomId, players, mode: room.mode, difficulty: room.difficulty },
+      data: { _internal: true, type: 'initGame', callerOpenid: caller, roomId, players, mode: room.mode, difficulty: room.difficulty },
     });
 
     if (!gameResult.result.success) return gameResult.result;

@@ -13,7 +13,10 @@ module.exports = async function (event, caller, db) {
       if (nickName.length > 20) return { success: false, error: 'NICKNAME_TOO_LONG', errorCode: 'NICKNAME_TOO_LONG' };
       updateData.nickName = nickName;
     }
-    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (avatarUrl !== undefined) {
+      if (avatarUrl && !avatarUrl.startsWith('cloud://')) return { success: false, error: 'INVALID_AVATAR_URL' };
+      updateData.avatarUrl = avatarUrl;
+    }
 
     if (Object.keys(updateData).length === 0) return { success: false, error: 'INVALID_PARAMS' };
 
