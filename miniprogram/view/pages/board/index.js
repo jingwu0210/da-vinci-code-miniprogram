@@ -5,6 +5,7 @@ const GameManager = require('../../../service/game/game-manager');
 const { ROUTES, buildRoute } = require('../../../common/routes');
 const { showConfirm, showToast } = require('../../../common/modal-helper');
 var audio = require('../../../utils/audio');
+var logger = require('../../../utils/logger');
 const store = require('../../../common/store');
 const { Phase, Difficulty } = require('../../../common/enums');
 const { findValidInsertPositions } = require('../../../utils/sort-hand');
@@ -23,6 +24,16 @@ Page({
     guessTarget: null,
     canEndTurn: false,
     aiGuessPosition: -1,
+    notifyMsg: '',
+  },
+
+  _notifyTimer: null,
+
+  _notify(msg, duration) {
+    if (this._notifyTimer) clearTimeout(this._notifyTimer);
+    this.setData({ notifyMsg: msg });
+    var self = this;
+    this._notifyTimer = setTimeout(function() { self.setData({ notifyMsg: '' }); }, duration || 2000);
   },
 
   _gameId: null,
@@ -32,6 +43,8 @@ Page({
   _aiPending: false,
   _guessedCorrectly: false,
   _alive: false,
+  _lastLogLen: 0,
+  _guessBlockUntil: 0,
   _gameOver: false,
 
   async onLoad(options) {
@@ -48,6 +61,17 @@ Page({
     const room = store.get('currentRoom') || {};
     this._isAi = room.mode === 'ai' || options.mode === 'ai';
 
+    // 兜底：如果没传 gameId，通过 roomId 从房间文档中获取
+    if (!this._gameId && this._roomId) {
+      try {
+        var RoomCall = require('../../../cloud/cloud-functions/room-call');
+        var roomResp = await RoomCall.getRoom(this._roomId);
+        if (roomResp.success && roomResp.data && roomResp.data.room && roomResp.data.room.gameId) {
+          this._gameId = roomResp.data.room.gameId;
+        }
+      } catch (e) { /* fall through to error below */ }
+    }
+
     try {
       const state = await GameManager.getGameState(this._gameId);
       // 兜底：对手 openid 含 'ai' 即为 AI 模式
@@ -59,7 +83,7 @@ Page({
           }
         }
       }
-      console.log('[board] _isAi=', this._isAi, 'myTurn=', state.game.myTurn, 'phase=', state.game.phase, 'poolRemaining=', JSON.stringify(state.game.poolRemaining));
+      logger.debug('[board] _isAi=', this._isAi, 'myTurn=', state.game.myTurn, 'phase=', state.game.phase, 'poolRemaining=', JSON.stringify(state.game.poolRemaining));
       this._applyState(state);
       // 如果 AI 先手 → 触发 AI
       if (!state.game.myTurn && this._isAi) this._triggerAi();
@@ -235,7 +259,7 @@ Page({
         });
       }
       var a = actions[0];
-      console.log('[AI-TOAST] action=' + a.action + ' ' + JSON.stringify(a));
+      logger.debug('[AI-TOAST] action=' + a.action + ' ' + JSON.stringify(a));
       if (a.action === 'draw') {
         wx.showToast({ title: 'AI 摸了' + (a.color === 'black' ? ' 黑色' : ' 白色') + '牌', icon: 'none', duration: 1500 });
       } else if (a.action === 'guess') {
@@ -255,16 +279,16 @@ Page({
       } else if (a.action === 'pass') {
         wx.showToast({ title: 'AI 结束回合', icon: 'none', duration: 1000 });
       }
-      console.log('[AI-REFRESH] after toast, before getGameState');
+      logger.debug('[AI-REFRESH] after toast, before getGameState');
       setTimeout(function () {
         GameManager.getGameState(self._gameId).then(function (state) {
-          console.log('[AI-STATE] phase=' + state.game.phase + ' myTurn=' + state.game.myTurn);
+          logger.debug('[AI-STATE] phase=' + state.game.phase + ' myTurn=' + state.game.myTurn);
           self._applyState(state);
           if (!state.game.myTurn && self._isAi) {
-            console.log('[AI-NEXT] still AI turn, next step in 1s');
+            logger.debug('[AI-NEXT] still AI turn, next step in 1s');
             setTimeout(function () { self._aiStep(difficulty); }, 1000);
           } else {
-            console.log('[AI-DONE] turn over');
+            logger.debug('[AI-DONE] turn over');
             self._aiPending = false;
           }
         });
@@ -277,8 +301,45 @@ Page({
   _onWatchUpdate(doc) {
     if (!this._alive || this._aiPending) return;
     var self = this;
-    GameManager.getGameState(this._gameId).then(function (state) {
+
+    // 快路径：直接从 watch 推送的 doc 检测对手猜测/退出（零额外网络调用）
+    var myOpenid = (store.get('user') && store.get('user').openid) || getApp().globalData.touristId;
+    var log = doc.turnLog || [];
+    if (log.length > self._lastLogLen) {
+      for (var i = self._lastLogLen; i < log.length; i++) {
+        var entry = log[i];
+        if (entry.action === 'draw' && entry.playerOpenid !== myOpenid) {
+          var c = entry.color === 'black' ? '黑色' : '白色';
+          self._notify('对手摸了' + c + '牌', 1500);
+        } else if (entry.action === 'guess' && entry.targetOpenid === myOpenid) {
+          var posLabel = '第' + (entry.position + 1) + '张牌';
+          var valLabel = entry.guessedValue === -1 ? 'Joker' : String(entry.guessedValue);
+          var resultLabel = entry.isCorrect ? '猜对了！' : '猜错了';
+          self.setData({ aiGuessPosition: entry.position });
+          self._notify('对手猜了你的' + posLabel + '为 ' + valLabel + '，' + resultLabel, 2500);
+          self._guessBlockUntil = Date.now() + 2500;
+          setTimeout(function() { self.setData({ aiGuessPosition: -1 }); }, 2000);
+        } else if (entry.action === 'quit') {
+          wx.showModal({ title: '对手已退出', content: '对方退出了对局，你获胜了！', showCancel: false, confirmText: '查看结算' });
+        }
+      }
+      self._lastLogLen = log.length;
+    }
+
+    // 慢路径：全量状态刷新（getClientView 消毒数据）
+    GameManager.getGameState(self._gameId).then(function (state) {
       if (!self._alive || self._aiPending) return;
+      // 对手刚猜了你的牌 → 延迟展示回合切换，让用户有时间看通知
+      if (state.game.myTurn && self._guessBlockUntil && Date.now() < self._guessBlockUntil) {
+        var remaining = self._guessBlockUntil - Date.now();
+        setTimeout(function() {
+          if (!self._alive) return;
+          self._applyState(state);
+          if (state.game.winner) self._goResult(state.game.winner);
+        }, remaining);
+        return;
+      }
+      self._guessBlockUntil = 0;
       self._applyState(state);
       if (state.game.winner) self._goResult(state.game.winner);
     }).catch(function () {});
@@ -295,9 +356,9 @@ Page({
     var aiShow = ai.map(function(t){return t.isRevealed?(t.isJoker?'J':t.value)+t.color[0]:'≤'+t.color[0];}).join(' ');
     var dt = state.game.myDrawnTile;
     var dtShow = dt ? (dt.isJoker?'J':dt.value)+dt.color[0] : '-';
-    console.log('[DEBUG] phase='+state.game.phase+' myTurn='+state.game.myTurn+' pool=b'+state.game.poolRemaining.black+'/w'+state.game.poolRemaining.white+' drawn='+dtShow);
-    console.log('[DEBUG] 我: ['+me+']');
-    console.log('[DEBUG] AI: ['+aiShow+']');
+    logger.debug('[DEBUG] phase='+state.game.phase+' myTurn='+state.game.myTurn+' pool=b'+state.game.poolRemaining.black+'/w'+state.game.poolRemaining.white+' drawn='+dtShow);
+    logger.debug('[DEBUG] 我: ['+me+']');
+    logger.debug('[DEBUG] AI: ['+aiShow+']');
 
     // 池空自动跳到猜测（无摸牌时触发）
     if (state.game.myTurn && state.game.poolRemaining.total === 0 && !state.game.myDrawnTile && (state.game.phase === 'drawing' || state.game.phase === 'waiting')) {

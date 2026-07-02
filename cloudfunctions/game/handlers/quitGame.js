@@ -20,6 +20,10 @@ module.exports = async function (event, caller, db) {
     if (gs.turnOrder.length <= 1) {
       gs.status = 'finished'; gs.winner = gs.turnOrder[0] || null;
       gs.phase = E.Phase.WAITING; winner = gs.winner; gameContinues = false;
+      // 更新房间状态为 finished
+      if (gs.roomId) {
+        await db.collection('rooms').where({ roomId: gs.roomId }).update({ data: { status: 'finished', updatedAt: db.serverDate() } });
+      }
     } else {
       gs.turnIndex = gs.turnIndex % gs.turnOrder.length;
       gs.drawnTileId = null; gs.phase = E.Phase.WAITING;

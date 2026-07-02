@@ -60,6 +60,7 @@ page {
   --radius-sm:   8rpx;
   --radius-md:   12rpx;
   --radius-lg:   16rpx;
+  --radius-xl:   32rpx;   /* 弹窗 / 模态框 */
 
   /* === 阴影 === */
   --shadow-card:  0 2rpx 8rpx rgba(0,0,0,0.08);

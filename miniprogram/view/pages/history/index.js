@@ -5,6 +5,7 @@ const HistoryService = require('../../../service/history/history-service');
 const { ROUTES } = require('../../../common/routes');
 const login = require('../../../utils/login');
 const store = require('../../../common/store');
+var logger = require('../../../utils/logger');
 
 Page({
   data: {
@@ -19,7 +20,7 @@ Page({
 
   async onLoad() {
     var ut = login.getUserType();
-    console.log('[history] onLoad userType=' + ut + ' storeUserType=' + (store.get('userType') || '?'));
+    logger.debug('[history] onLoad userType=' + ut + ' storeUserType=' + (store.get('userType') || '?'));
     this.setData({ userType: ut });
     await this._loadPage(1);
   },
@@ -39,22 +40,22 @@ Page({
       // 游客: 读本地缓存
       if (login.getUserType() === 'tourist') {
         var all = login.getLocalRecords();
-        console.log('[history] tourist mode, local records=' + all.length);
+        logger.debug('[history] tourist mode, local records=' + all.length);
         var pageSize = 20;
         var paged = all.slice((page - 1) * pageSize, page * pageSize);
         var records = page === 1 ? paged : this.data.records.concat(paged);
         var hasMore = page * pageSize < all.length;
-        console.log('[history] tourist: all=' + all.length + ' records=' + records.length);
+        logger.debug('[history] tourist: all=' + all.length + ' records=' + records.length);
         try {
           var s = _calcStats(records);
           var fmt = _fmtRecords(records);
-          console.log('[history] fmt ok, count=' + fmt.length);
+          logger.debug('[history] fmt ok, count=' + fmt.length);
           this.setData({ records: fmt, stats: s, hasMore: hasMore, page: page, loading: false, empty: records.length === 0 }, function() {
-            console.log('[history] setData callback, stats=' + JSON.stringify(this.data.stats));
+            logger.debug('[history] setData callback, stats=' + JSON.stringify(this.data.stats));
           }.bind(this));
-          console.log('[history] after setData, stats=' + JSON.stringify(this.data.stats));
+          logger.debug('[history] after setData, stats=' + JSON.stringify(this.data.stats));
         } catch(e) {
-          console.log('[history] ERROR:', e.message);
+          logger.debug('[history] ERROR:', e.message);
         }
         return;
       }
@@ -64,7 +65,7 @@ Page({
       var records = page === 1 ? result.records : this.data.records.concat(result.records);
       records = _fmtRecords(records);
 
-      console.log('[history] records=' + records.length + ' first=' + JSON.stringify(records[0]));
+      logger.debug('[history] records=' + records.length + ' first=' + JSON.stringify(records[0]));
       this.setData({
         records: records,
         stats: _calcStats(records),
@@ -113,7 +114,7 @@ function _calcStats(records) {
   var wins = 0;
   records.forEach(function(r) {
     var me = (r.players || []).find(function(p) { return p.nickName !== 'AI'; });
-    console.log('[history] calcStats: me=' + JSON.stringify(me) + ' winner=' + (me && me.isWinner));
+    logger.debug('[history] calcStats: me=' + JSON.stringify(me) + ' winner=' + (me && me.isWinner));
     if (me && me.isWinner) wins++;
   });
   var result = {
@@ -121,6 +122,6 @@ function _calcStats(records) {
     wins: wins,
     winRate: records.length > 0 ? (wins / records.length * 100).toFixed(0) + '%' : '0%',
   };
-  console.log('[history] calcStats result:', JSON.stringify(result));
+  logger.debug('[history] calcStats result:', JSON.stringify(result));
   return result;
 }

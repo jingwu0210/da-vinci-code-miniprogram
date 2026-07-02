@@ -1,13 +1,34 @@
 <!-- 房间等待室 -->
 <view class="room-page">
 
+  <!-- 密码输入弹窗 -->
+  <view class="modal-overlay" wx:if="{{showPasswordModal}}" catchtap="onCancelJoinPassword">
+    <view class="modal-card" catchtap="">
+      <text class="modal-title">需要房间密码</text>
+      <text class="modal-desc">房间 {{room.roomId}} 设置了密码保护</text>
+      <input class="password-input" type="number" maxlength="4" placeholder="输入4位数字密码"
+             value="{{joinPassword}}" bindinput="onJoinPasswordInput" focus="{{true}}" />
+      <text class="join-error" wx:if="{{joinError}}">{{joinError}}</text>
+      <view class="modal-btns">
+        <view class="btn-secondary" style="flex:1" bindtap="onCancelJoinPassword">取消</view>
+        <view class="btn-primary" style="flex:1" bindtap="onConfirmJoinWithPassword">加入房间</view>
+      </view>
+    </view>
+  </view>
+
   <view class="main" wx:if="{{room}}">
     <!-- 房间码深色条 -->
     <view class="code-bar">
       <text class="code-text">房间号：{{room.roomId}}</text>
       <view class="code-actions">
-        <text class="code-action" bindtap="onCopy">📋 复制</text>
-        <button class="share-btn-inline" open-type="share">📤 转发</button>
+        <view class="code-action" bindtap="onCopy">
+          <image class="code-action-icon" mode="aspectFit" src="/images/icons/copy-white.svg" />
+          <text class="code-action-text">复制</text>
+        </view>
+        <button class="share-btn-inline" open-type="share">
+          <image class="code-action-icon" mode="aspectFit" src="/images/icons/share-white.svg" />
+          <text class="code-action-text">转发</text>
+        </button>
       </view>
     </view>
 
@@ -15,7 +36,10 @@
 
     <view class="player-list">
       <view class="player-card" wx:for="{{room.players}}" wx:key="openid">
-        <view class="p-avatar">👤</view>
+        <view class="p-avatar">
+          <image wx:if="{{item.avatarUrl}}" class="p-avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+          <text wx:else class="p-avatar-placeholder">👤</text>
+        </view>
         <view class="p-info">
           <view class="p-name-row">
             <text class="p-name">{{item.nickName || '玩家'}}</text>
@@ -39,9 +63,9 @@
     </view>
 
     <view class="bottom-actions">
-      <button class="btn-secondary" style="flex:1" bindtap="onToggleReady">{{isReady ? '取消准备' : '准备'}}</button>
-      <button class="btn-primary" style="flex:1" bindtap="onStartGame" wx:if="{{isCreator && canStart}}">开始游戏</button>
-      <button class="btn-primary" style="flex:1" disabled wx:else>等待准备中</button>
+      <view class="btn-secondary" style="flex:1" bindtap="onToggleReady">{{isReady ? '取消准备' : '准备'}}</view>
+      <view class="btn-primary" style="flex:1" bindtap="onStartGame" wx:if="{{isCreator && canStart}}">开始游戏</view>
+      <view class="btn-primary btn-disabled" style="flex:1" wx:else>等待准备中</view>
     </view>
   </view>
 </view>

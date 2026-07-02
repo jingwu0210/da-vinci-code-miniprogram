@@ -13,7 +13,7 @@
     <!-- 对手区 -->
     <view class="opponent-card {{game.currentTurnOpenid === item.openid ? 'active-turn' : ''}}" wx:for="{{opponents}}" wx:key="openid">
       <view class="opponent-card-header">
-        <text class="opponent-card-name">{{item.nickName || '对手'}}</text>
+        <text class="opponent-card-name">{{item.nickName || '对手'}}<text wx:if="{{game.currentTurnOpenid === item.openid}}" class="turn-hint"> · {{game.phase === 'waiting' ? '摸牌中' : (game.phase === 'inserting' ? '插牌中' : (game.phase === 'guessing' ? '猜测中' : '思考中'))}}</text></text>
       </view>
       <opponent-hand tiles="{{item.hand}}" drawnTileId="{{item.drawnTileId || ''}}" playerOpenid="{{item.openid}}" interactive="{{game.myTurn && phase === 'guessing'}}" isCurrentTarget="{{guessTarget && guessTarget.openid === item.openid}}" bind:tileSelected="onOpponentTileSelected" />
     </view>
@@ -29,9 +29,12 @@
 
     <!-- 我的手牌 -->
     <view class="self-card {{game.myTurn ? 'active-turn' : ''}}">
-      <text class="self-card-label">我的手牌<text class="turn-hint"> · {{phase === 'drawing' || phase === 'waiting' ? '摸牌中' : (phase === 'inserting' ? '插牌中' : (phase === 'guessing' ? '猜测中' : '思考中'))}}</text></text>
+      <text class="self-card-label">我的手牌<text wx:if="{{game.myTurn}}" class="turn-hint"> · {{phase === 'drawing' || phase === 'waiting' ? '摸牌中' : (phase === 'inserting' ? '插牌中' : (phase === 'guessing' ? '猜测中' : '思考中'))}}</text></text>
       <player-hand tiles="{{myHand}}" isOwn="{{true}}" insertMode="{{game.myTurn && phase === 'inserting'}}" drawnTile="{{game.myDrawnTile}}" aiGuessPosition="{{aiGuessPosition}}" bind:positionSelected="onTapInsertSlot" />
     </view>
+
+    <!-- 对手行动通知条（手牌区下方，醒目但不遮挡） -->
+    <view class="board-notify {{notifyMsg ? 'notify-visible' : ''}}" wx:if="{{notifyMsg}}"><text>{{notifyMsg}}</text></view>
   </scroll-view>
 
   <!-- 底部操作栏 -->
@@ -47,6 +50,6 @@
       <button class="btn-continue" catchtap="onContinueGuessing">继续猜测</button>
       <button class="btn-end-turn" catchtap="onTapPass">结束回合</button>
     </view>
-    <guess-panel wx:if="{{game.myTurn && phase === 'guessing' && guessTarget}}" show="{{true}}" opponents="{{opponents}}" targetOpenid="{{guessTarget.openid}}" targetPosition="{{guessTarget.position}}" color="{{guessTarget.color}}" bind:confirm="onConfirmGuess" bind:cancel="onCancelGuess" />
+    <guess-panel wx:if="{{game.myTurn && phase === 'guessing' && guessTarget}}" show="{{!!guessTarget}}" opponents="{{opponents}}" targetOpenid="{{guessTarget.openid}}" targetPosition="{{guessTarget.position}}" color="{{guessTarget.color}}" bind:confirm="onConfirmGuess" bind:cancel="onCancelGuess" />
   </view>
 </view>

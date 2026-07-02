@@ -127,34 +127,31 @@ GameState = {
 ### 2.2 状态转移图
 
 ```
-                 ┌───────────────────────────────────┐
-                 │                                   │
-  ┌──────────┐   │   ┌──────────┐   ┌────────────┐  │
-  │ WAITING  │───┼──►│ DRAWING  │──►│ INSERTING  │  │
-  │(非己回合) │   │   │(摸牌中)   │   │(插牌中)    │  │
-  └──────────┘   │   └──────────┘   └─────┬──────┘  │
-       ▲         │                         │         │
-       │         │                    ┌────┴────┐    │
-       │         │                    │         │    │
-       │         │               ┌────▼──┐  ┌──▼───┐ │
-       │         │               │GUESSING│  │GUESSING│
-       │         │               │(可继续) │  │(已猜对)│
-       │         │               └───┬───┘  └──┬───┘ │
-       │         │                   │         │      │
-       │         │         ┌─────────┘    ┌────┘      │
-       │         │         │ 猜错/放弃     │ 继续猜    │
-       │         │         ▼              │           │
-       │         │   ┌──────────┐         │           │
-       │         └───│NEXT_TURN │◄────────┘           │
-       │             │(检查胜负) │                     │
-       │             └────┬─────┘                     │
-       │                  │                           │
-       │             ┌────▼────┐                      │
-       │             │GAME_OVER│                      │
-       │             └─────────┘                      │
-       │                                             │
-       └─────────────────────────────────────────────┘
+                 ┌────────────────────────────────────────┐
+                 │                                        │
+  ┌──────────┐   │   ┌──────────┐   ┌────────────┐       │
+  │ WAITING  │───┼──►│ DRAWING  │──►│ GUESSING   │       │
+  │(非己回合) │   │   │(摸牌中)   │   │(猜测中)     │       │
+  └──────────┘   │   └──────────┘   └─────┬──────┘       │
+       ▲         │     池空时跳过        │  │             │
+       │         │   ┌──────────┐        │  │             │
+       │         │   │ INSERTING│◄───────┘  │ 猜对继续     │
+       │         │   │(插牌中)  │ 猜错Joker │             │
+       │         │   └────┬─────┘           │             │
+       │         │        │                 │             │
+       │         │   ┌────▼────┐   ┌────────▼──┐         │
+       │         │   │NEXT_TURN│◄──│ GUESSING   │         │
+       │         └───│(切回合)  │   │ (猜错/放弃)│         │
+       │             └────┬─────┘   └───────────┘         │
+       │                  │                                │
+       │             ┌────▼────┐                           │
+       │             │GAME_OVER│                           │
+       │             └─────────┘                           │
+       │                                                  │
+       └──────────────────────────────────────────────────┘
 ```
+
+**说明**: DRAWING 摸牌后直接进入 GUESSING（暂不插入，猜错后自动插入或 Joker 手动放置）。INSERTING 仅用于：初始 Joker 摆放 + 猜错 Joker 后手动放置。
 
 ### 2.3 状态转移表
 
@@ -163,18 +160,17 @@ GameState = {
 | INIT | `INIT_JOKER` | 任意玩家有初始 Joker | INSERTING | initialJokerTurn=0, 第一个玩家的 Joker → drawnTileId |
 | INSERTING | `INSERT_JOKER` | 同玩家还有 Joker | INSERTING | jokersToPlace.shift → drawnTileId |
 | INSERTING | `INSERT_JOKER` | 当前玩家 Joker 放完，还有后续玩家 | INSERTING | initialJokerTurn++ → 下一个玩家的 Joker |
-| INSERTING | `INSERT_JOKER` | 所有玩家 Joker 放完 | DRAWING | initialJokerTurn=null, turnIndex=originalTurnIndex |
-| WAITING | `BEGIN_TURN` | 轮到该玩家 | DRAWING | 开始计时器 |
-| DRAWING | `DRAW_TILE(color)` | 该颜色池非空 | INSERTING | tile.owner → 玩家, drawnTileId |
-| DRAWING | `DRAW_TILE` | 两颜色池皆空 | GUESSING | drawnTileId=null，无需插入 |
-| INSERTING | `INSERT(pos)` | 非 Joker，0 ≤ pos ≤ \|hand\| | GUESSING | tile.position 更新 |
-| INSERTING | `INSERT_JOKER` | 猜错 Joker → 揭示 | WAITING | isRevealed=true, turnIndex++ |
-| GUESSING | `GUESS` → 正确 | 对手还有未翻牌 | GUESSING | 目标牌 isRevealed=true |
+| INSERTING | `INSERT_JOKER` | 所有玩家 Joker 放完 | WAITING | initialJokerTurn=null, turnIndex=originalTurnIndex，正式回合开始 |
+| WAITING | `BEGIN_TURN` | 轮到该玩家 | DRAWING | — |
+| DRAWING | `DRAW_TILE(color)` | 该颜色池非空 | GUESSING | tile.owner → 玩家, drawnTileId, 暂不插入 |
+| DRAWING | `DRAW_TILE` | 两颜色池皆空 | GUESSING | drawnTileId=null，跳过摸牌直接猜测 |
+| INSERTING | `INSERT(pos)` | 猜错 Joker 后放置 | WAITING | isRevealed=true, jokerPendingReveal=null, turnIndex++ |
+| GUESSING | `GUESS` → 正确 | 对手还有未翻牌 | GUESSING | 目标牌 isRevealed=true，可继续猜 |
 | GUESSING | `GUESS` → 正确 | 所有对手全部翻开 | GAME_OVER | winner = 当前玩家 |
 | GUESSING | `GUESS` → 错误(数字牌) | — | WAITING | 自动插入 + 亮牌, turnIndex++ |
-| GUESSING | `GUESS` → 错误(Joker) | — | INSERTING | jokerPendingReveal=true |
+| GUESSING | `GUESS` → 错误(Joker) | — | INSERTING | jokerPendingReveal=true，需手动放置 |
 | GUESSING | `PASS(reveal=true)` | 有 drawnTile 且非 Joker | WAITING | 自动插入 + 亮牌, turnIndex++ |
-| GUESSING | `PASS(reveal=true)` | 有 drawnTile 且是 Joker | INSERTING | 手动放置（亮牌已设置） |
+| GUESSING | `PASS(reveal=true)` | 有 drawnTile 且是 Joker | INSERTING | 手动放置 Joker（亮牌已设置） |
 | GUESSING | `PASS(reveal=false)` | 猜对后主动结束 | WAITING | 不亮牌, turnIndex++ |
 | NEXT_TURN | — | 所有对手全翻开 | GAME_OVER | winner = 当前玩家 |
 | NEXT_TURN | — | 否则 | WAITING | turnIndex = (turnIndex+1) % N |

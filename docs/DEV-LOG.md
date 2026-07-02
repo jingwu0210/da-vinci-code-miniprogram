@@ -1,6 +1,56 @@
 # 开发日志
 
-> 最后更新: 2026-07-01
+> 最后更新: 2026-07-02
+
+---
+
+## 2026-07-02 产出（Phase 9）
+
+### 打磨上线准备
+
+| 变更 | 说明 |
+|------|------|
+| **分享密码修复** | room/detail 分享加入流程新增密码输入弹窗，修复有密码房间通过分享链接无法加入的问题 |
+| **getRoom 大小写** | `getRoom.js` 补上 `roomId.toUpperCase()`，与其余 5 个 room handler 保持一致 |
+| **房间 finished 状态** | `makeGuess.js` / `quitGame.js` 游戏结束时同步更新 rooms 集合 status 为 `finished` |
+| **quickstartFunctions 清理** | 删除模板云函数目录（index.js / config.json / package.json） |
+| **测试代码设防** | initGame.js 移除 `testHands`/`testFirstPlayer` 入口参数；result 页移除 `options.test` URL 绕过分支；`_mockRecord` 函数保留供后续开发 |
+| **console.log → logger.debug** | board(9处)/history(11处)/result(1处) 全部改为 `logger.debug` |
+| **死代码清理** | 删除 8 个零引用文件/组件：game-engine.js / debounce.js / throttle.js / format.js / player.js / room.js / ready-checker.js / cloudTipModal |
+| **未用图片清理** | 删除 10 张 quickstart 模板 PNG + 2 张未引用 SVG |
+| **project.config.json** | projectname → da-vinci-code；uploadWithSourceMap → false；添加 packOptions.ignore；清理 condition 残留 |
+| **README 重写** | 替换 CloudBase 模板为完整的项目介绍（功能/技术栈/结构/架构/文档） |
+
+### 文档更新
+
+| 文档 | 更新内容 |
+|------|------|
+| CLAUDE.md | Phase 9 状态更新，libVersion 修正为 2.20.1 |
+| DEV-LOG.md | Phase 8 / Phase 9 产出条目 |
+
+---
+
+## 2026-07-01 产出（Phase 8）
+
+### UI 全局风格迭代 — 明亮主题 + 深色导航栏
+
+| 变更 | 说明 |
+|------|------|
+| **全局主题** | 暗色毛毡 → 明亮 `#F3F4F6` 背景 + `#1F2937` 深色导航栏 |
+| **设计 Token** | 全局统一色彩/字号/间距/圆角/阴影体系（`common/theme.wxss`） |
+| **按钮系统** | Primary(深灰)/Secondary(浅灰)/Ghost/Danger 四态 + app.wxss 全局类 |
+| **登录页** | 错落牌组装饰 + 品牌金色标题 + 副标题 + 微信按钮 loading 态 |
+| **Lobby 重设计** | 深色 NavBar(头像+昵称+战绩) → 2列卡片布局 → 底部分隔链接行 |
+| **单机配置页** | 新增独立页面，简单/中等/困难三选一 |
+| **好友房间弹窗** | 创建/加入双选项 + 房间码/密码输入 |
+| **房间等待室** | 深色房间码条 + 白色成员卡片 + 🟢/⏳ 状态 |
+| **Board 顶栏** | 深色 `#1F2937`（与其他页统一），状态提示始终可见 |
+| **结算页** | 胜利光晕动画 + 排名列表 + 分享/返回按钮 |
+| **历史页** | SVG 图标 + 绿/红左边框 + M月D日时间格式 |
+| **设置页** | 白色卡片 Toggle + 游客清除缓存确认弹窗 + exit SVG |
+| **Lucide 图标** | 16 个官方 SVG（bot/users/book-open/clipboard/settings 等） |
+| **游戏牌组件** | 完全保留当前 3D 立体牌设计 |
+| **11 页全量翻新** | 所有页面统一明亮主题 + 深色导航栏 |
 
 ---
 

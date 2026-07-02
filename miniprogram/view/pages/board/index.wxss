@@ -75,6 +75,15 @@
 }
 
 /* === 底部操作栏 === */
+/* === 对手行动通知条（手牌下方，醒目但不遮挡） === */
+.board-notify {
+  text-align: center; margin: 24rpx 32rpx 0;
+  padding: 18rpx 28rpx;
+  background: var(--primary); border-radius: 24rpx;
+  font-size: 26rpx; color: var(--primary-foreground); font-weight: 500;
+  box-shadow: 0 4rpx 16rpx rgba(31,41,55,0.25);
+}
+
 .action-area {
   flex-shrink: 0;
   padding: var(--sp-sm) var(--sp-md) calc(env(safe-area-inset-bottom, 0) + var(--sp-sm));

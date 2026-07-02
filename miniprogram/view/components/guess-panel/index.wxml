@@ -1,24 +1,23 @@
 <!-- guess-panel: 猜测面板 — 数字网格 + 确认/撤销 -->
-<view class="guess-mask" wx:if="{{show}}" catchtap="onCancel"></view>
-
-<view class="guess-panel {{show ? 'panel-visible' : ''}}">
+<view class="guess-panel">
   <view class="target-info" wx:if="{{targetName}}">
-    <text>猜测: {{targetName}} · 第{{targetPosition + 1}}张牌</text>
-    <text class="target-color" wx:if="{{color}}">({{color === 'black' ? '黑底' : '白底'}})</text>
+    <text>猜测</text>
+    <text class="target-name">{{targetName}}</text>
+    <text>第{{targetPosition + 1}}张</text>
+    <text class="target-color" wx:if="{{color}}">{{color === 'black' ? '⚫' : '⚪'}}</text>
   </view>
 
   <view class="number-grid">
     <view wx:for="{{numbers}}" wx:key="*this"
           class="num-cell {{selectedValue === item ? 'num-selected' : ''}} {{item === -1 ? 'joker-cell' : ''}}"
           data-value="{{item}}" catchtap="onSelectValue">
-      <text wx:if="{{item === -1}}" class="joker-label">—</text>
+      <text wx:if="{{item === -1}}" class="joker-label">Joker</text>
       <text wx:else class="num-label">{{item}}</text>
     </view>
   </view>
 
   <view class="guess-actions">
-    <button class="btn-cancel" catchtap="onCancel">撤销</button>
-    <button class="btn-confirm {{selectedValue !== null ? 'btn-active' : ''}}"
-            disabled="{{selectedValue === null}}" catchtap="onConfirm">确认猜测</button>
+    <view class="btn-cancel" catchtap="onCancel">撤销</view>
+    <view class="btn-confirm {{selectedValue !== null ? 'btn-active' : ''}}" catchtap="onConfirm">确认猜测</view>
   </view>
 </view>

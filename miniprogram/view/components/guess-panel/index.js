@@ -31,7 +31,7 @@ Component({
       this.setData({ selectedValue: parseInt(e.currentTarget.dataset.value) });
     },
     onConfirm() {
-      if (this.data.selectedValue === null) return;
+      if (this.data.selectedValue === null) return;  // 未选择任何值，不触发
       this.triggerEvent('confirm', {
         targetOpenid: this.properties.targetOpenid,
         position: this.properties.targetPosition,

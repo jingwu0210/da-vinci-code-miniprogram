@@ -1,81 +1,74 @@
-/* guess-panel: 底部弹出猜测面板 */
-
-.guess-mask {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 99;
-}
+/* guess-panel: 内嵌底部猜测面板 */
 
 .guess-panel {
-  position: fixed; left: 0; right: 0; bottom: 0;
-  background: var(--bg-card);
-  border-top: 1rpx solid var(--divider);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: var(--sp-md) var(--sp-lg) calc(env(safe-area-inset-bottom, 0) + var(--sp-md));
-  z-index: 100;
-  transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 20rpx var(--sp-md) 16rpx;
 }
-.panel-visible { transform: translateY(0); }
 
+/* 目标信息 */
 .target-info {
-  text-align: center; margin-bottom: var(--sp-md);
-  font-size: var(--fs-body); color: var(--text-primary);
+  display: flex; align-items: center; justify-content: center; gap: 8rpx;
+  margin-bottom: 20rpx;
+  font-size: var(--fs-body); color: var(--text-primary); font-weight: 500;
 }
-.target-color { color: var(--gold); margin-left: 4rpx; }
+.target-name { color: var(--primary); font-weight: 600; }
+.target-color { font-size: var(--fs-caption); color: var(--gold); }
 
+/* 数字网格 */
 .number-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--sp-sm);
-  margin-bottom: var(--sp-md);
+  gap: 12rpx;
+  margin-bottom: 20rpx;
 }
 
 .num-cell {
-  height: 80rpx;
+  height: 88rpx;
   display: flex; align-items: center; justify-content: center;
-  background: var(--panel-bg);
-  border: 1rpx solid var(--panel-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-body); color: var(--text-primary); font-weight: 500;
-  transition: background 0.15s, border-color 0.15s;
+  background: var(--bg-page);
+  border: 2rpx solid var(--divider);
+  border-radius: 16rpx;
+  font-size: 32rpx; color: var(--text-primary); font-weight: 600;
+  transition: all 0.15s;
 }
-.num-cell:active { background: rgba(235,235,229,0.12); }
+.num-cell:active { background: var(--divider); transform: scale(0.96); }
 
 .num-selected {
-  background: var(--gold); border-color: var(--gold);
-  color: #1A1A1E; font-weight: 700;
+  background: var(--primary); border-color: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 2rpx 8rpx rgba(31,41,55,0.25);
 }
 
+/* Joker 按钮 */
 .joker-cell { grid-column: span 4; }
-.joker-label { font-size: var(--fs-subtitle); font-family: 'Courier New', 'SF Mono', monospace; }
-.num-label { font-size: var(--fs-body); }
+.joker-cell.num-selected { background: var(--gold); border-color: var(--gold); color: #1F2937; }
+.joker-label {
+  font-size: 34rpx; font-weight: 700;
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: 2rpx;
+}
+.num-label { font-size: 32rpx; font-weight: 600; }
 
-.guess-actions { display: flex; gap: var(--sp-md); margin-bottom: var(--sp-sm); }
+/* 操作按钮 */
+.guess-actions { display: flex; gap: 16rpx; }
 
 .btn-cancel {
-  flex: 1; height: 80rpx; line-height: 80rpx;
-  background: transparent; color: var(--text-secondary);
-  border: 1rpx solid var(--divider); border-radius: var(--radius-sm);
-  font-size: var(--fs-body);
+  flex: 1; height: 88rpx; line-height: 88rpx; text-align: center;
+  background: var(--bg-page); color: var(--text-secondary);
+  border: 2rpx solid var(--divider); border-radius: 16rpx;
+  font-size: var(--fs-body); font-weight: 500;
 }
+.btn-cancel:active { background: var(--divider); }
+
 .btn-confirm {
-  flex: 2; height: 80rpx; line-height: 80rpx;
-  background: rgba(235,235,229,0.08); color: var(--text-secondary);
-  border: none; border-radius: var(--radius-sm);
-  font-size: var(--fs-body);
+  flex: 2; height: 88rpx; line-height: 88rpx; text-align: center;
+  background: var(--divider); color: var(--text-muted);
+  border: none; border-radius: 16rpx;
+  font-size: var(--fs-body); font-weight: 500;
+  transition: all 0.2s;
 }
 .btn-confirm.btn-active {
-  background: var(--gold); color: #1A1A1E; font-weight: 600;
+  background: var(--primary); color: var(--primary-foreground);
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(31,41,55,0.2);
 }
-.btn-confirm[disabled] { opacity: 0.4; }
-
-.end-turn-area {
-  display: flex; justify-content: center;
-  padding-top: var(--sp-sm); border-top: 1rpx solid var(--divider);
-}
-.btn-end-turn {
-  height: 64rpx; line-height: 64rpx;
-  background: transparent; color: var(--error);
-  font-size: var(--fs-caption); border: none;
-}
+.btn-confirm[disabled] { opacity: 0.5; }

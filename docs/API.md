@@ -529,13 +529,6 @@ type: 'makeGuess'
                                     // waiting: 猜错/放弃，等下一个回合
                                     // game_over: 游戏结束
   nextTurnOpenid?: String,          // nextPhase=waiting 时，下一个回合的玩家
-
-  // ── 可继续猜时的额外信息 ──
-  guessableTargets?: [{             // nextPhase=guessing 时返回
-    openid:   String,
-    nickName: String,
-    unrevealedPositions: [Integer]  // 还有哪些位置可猜
-  }]
 }
 
 ■ 错误:
@@ -557,14 +550,15 @@ type: 'passTurn'
 
 ■ 入参:
 {
-  gameId: String
+  gameId: String,
+  reveal?: Boolean                    // 是否亮摸牌（默认 true）。猜对后主动 pass 时传 false 不亮牌
 }
 
 ■ 出参 (success):
 {
   nextTurnOpenid: String,
-  nextPhase: 'waiting',
-  revealedTile:  SelfTile | null    // 被翻开的自己摸的牌
+  nextPhase: 'waiting' | 'inserting', // 猜错 Joker → 'inserting'（需手动放置）
+  revealedTile:  SelfTile | null      // 被翻开的自己摸的牌
 }
 
 ■ 错误:
@@ -613,23 +607,19 @@ type: 'aiMove'
 
 ■ 出参 (success):
 {
-  actions: [{                        // AI 回合的动作序列（按时间顺序）
+  action: {                          // AI 单步动作（每次调用返回一个动作，前端轮询推进）
     action: 'draw',                  // 摸牌
     color:  'black' | 'white'
-  }, {
-    action: 'insert',                // 插牌
-    position: Integer
-  }, {
+  } | {
     action: 'guess',                 // 猜测
     target:    String,               // 被猜对手 openid
     position:  Integer,
     value:     Integer,              // -1 猜 Joker，0~11 猜数字
-    isCorrect: Boolean
-  },
-  // ... 可能多轮 guess (猜对继续) + 最后 pass
-  {
+    isCorrect: Boolean,
+    gameOver?: Boolean               // 猜对后游戏是否结束
+  } | {
     action: 'pass'
-  }],
+  },
 
   // 最终状态
   gameOver: Boolean,

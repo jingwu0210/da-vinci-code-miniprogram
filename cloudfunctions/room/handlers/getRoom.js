@@ -6,7 +6,7 @@ module.exports = async (event, caller, db) => {
   if (!roomId) return { success: false, error: 'INVALID_PARAMS', errorCode: 'INVALID_PARAMS' };
 
   try {
-    const res = await db.collection('rooms').where({ roomId }).get();
+    const res = await db.collection('rooms').where({ roomId: roomId.toUpperCase() }).get();
     if (!res.data || res.data.length === 0) {
       return { success: false, error: 'ROOM_NOT_FOUND', errorCode: 'ROOM_NOT_FOUND' };
     }

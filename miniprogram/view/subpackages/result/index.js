@@ -8,6 +8,7 @@ const login = require('../../../utils/login');
 const { ROUTES } = require('../../../common/routes');
 const { resultShareConfig } = require('../../../cloud/share/share-helper');
 var audio = require('../../../utils/audio');
+var logger = require('../../../utils/logger');
 
 Page({
   data: {
@@ -23,14 +24,6 @@ Page({
     // 真机 100vh 不准确，用系统窗口高度
     var sys = wx.getSystemInfoSync();
     this.setData({ userType: userType, pageHeight: sys.windowHeight + 'px' });
-
-    // 测试模式
-    if (options.test === 'win' || options.test === 'lose') {
-      var isWin = options.test === 'win';
-      audio.play(isWin ? 'victory' : 'defeat');
-      this.setData({ record: _mockRecord(isWin), isWinner: isWin, loading: false });
-      return;
-    }
 
     // 微信用户: 云端存档
     if (userType === 'wechat') {
@@ -58,7 +51,7 @@ Page({
         var s = gsResp.data.settlement;
         var rec = s ? _buildLocalRecord(s, options.winner) : _buildMinimalRecord(gsResp.data, options.winner);
         login.saveLocalRecord(rec);
-        console.log('[result] saved local record, total=' + login.getLocalRecords().length);
+        logger.debug('[result] saved local record, total=' + login.getLocalRecords().length);
         rec.durStr = _fmtDur(rec.duration);
         rec.diffStr = _fmtDiff(rec.difficulty);
         // 游客: 比较 winner 与自己 touristId

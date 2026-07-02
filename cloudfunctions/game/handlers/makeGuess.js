@@ -40,6 +40,10 @@ module.exports = async function (event, caller, db) {
         await db.collection('games').doc(gameId).update({ data: {
           tiles: gs.tiles, status: gs.status, winner: gs.winner, phase: gs.phase, turnLog: gs.turnLog, updatedAt: db.serverDate(),
         }});
+        // 更新房间状态为 finished
+        if (gs.roomId) {
+          await db.collection('rooms').where({ roomId: gs.roomId }).update({ data: { status: 'finished', updatedAt: db.serverDate() } });
+        }
         return { success: true, data: { isCorrect: true, revealedTile: E.toOpponentTile(targetTile), gameOver: true, winner: caller, nextPhase: 'game_over' }};
       }
 

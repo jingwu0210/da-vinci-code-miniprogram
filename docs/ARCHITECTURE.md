@@ -66,7 +66,13 @@ miniprogram/
 │   ├── enums.js                     # 枚举: Color, Phase, GameMode, RoomStatus, Difficulty
 │   ├── routes.js                    # 路由表: 所有页面路径集中管理
 │   ├── theme.wxss                   # 主题样式: 色板、字级、间距、圆角
-│   └── modal-helper.js              # 通用弹窗: 确认框、toast 统一封装
+│   ├── store.js                     # 全局轻量 Store（~50行）
+│   ├── error-msg.js                 # 错误码 → 中文翻译（30+ 条目）
+│   ├── storage-keys.js              # storage key 常量
+│   ├── settings-cache.js            # 设置读写（音效/振动）
+│   ├── history-cache.js             # 游客本地对局缓存（≤10 条）
+│   ├── modal-helper.js              # 通用弹窗: 确认框、toast 统一封装
+│   └── time.js                      # 时间格式化工具
 │
 ├── view/                            # ★ 表现层 —— UI 渲染与用户交互
 │   ├── pages/
@@ -74,11 +80,13 @@ miniprogram/
 │   │   │   ├── index.js / .wxml / .wxss / .json
 │   │   ├── lobby/                   # 游戏大厅
 │   │   │   ├── index.js / .wxml / .wxss / .json
+│   │   ├── single-config/           # 单机配置（难度选择）
 │   │   ├── board/                   # 游戏主界面（核心）
 │   │   │   ├── index.js / .wxml / .wxss / .json
 │   │   ├── tutorial/                # 新手教程
 │   │   ├── history/                 # 历史对局
-│   │   └── settings/                # 设置
+│   │   ├── settings/                # 设置
+│   │   └── agreement/               # 用户协议 & 隐私政策
 │   ├── subpackages/
 │   │   ├── room/
 │   │   │   ├── create/index         # 创建房间
@@ -86,20 +94,16 @@ miniprogram/
 │   │   └── result/
 │   │       └── index                # 结算页
 │   ├── components/                  # 自定义组件
-│   │   ├── game-tile/               # 单张牌
-│   │   ├── player-hand/             # 手牌序列
+│   │   ├── game-tile/               # 单张牌（3D 立体效果）
+│   │   ├── player-hand/             # 手牌序列 + 插入槽 ▲
 │   │   ├── opponent-hand/           # 对手手牌（暗牌）
-│   │   ├── guess-panel/             # 猜测操作板
-│   │   ├── game-info-bar/           # 顶部回合信息
-│   │   ├── player-avatar/           # 玩家头像
-│   │   ├── room-code/               # 房间码展示+复制
-│   │   └── countdown/               # 倒计时组件
-│   ├── animations/                  # 动画模块
-│   │   ├── tile-flip.js             # 卡牌推倒（三段式）
-│   │   ├── card-draw.js             # 摸牌入场
-│   │   └── victory.js               # 获胜特效
-│   └── guides/                      # 新手引导
-│       └── steps.js                 # 6步教程数据
+│   │   └── guess-panel/             # 猜测面板（数字网格 0-11 + Joker）
+│   ├── animations/                  # 动画模块（预留，board 页内联实现）
+│   │   ├── tile-flip.js
+│   │   ├── card-draw.js
+│   │   └── victory.js
+│   └── guides/                      # 教程数据（预留，tutorial 页内联实现）
+│       └── steps.js
 │
 ├── service/                         # ★ 业务层 —— 领域逻辑，无 UI 依赖
 │   ├── game/
@@ -108,8 +112,7 @@ miniprogram/
 │   │   ├── guess-handler.js         # 猜测逻辑: 判定 + 副作用编排
 │   │   └── draw-insert.js           # 摸牌+插入逻辑
 │   ├── room/
-│   │   ├── room-manager.js          # 房间生命周期
-│   │   └── ready-checker.js         # 准备状态校验
+│   │   └── room-manager.js          # 房间生命周期（含准备校验内联）
 │   ├── ai/
 │   │   ├── ai-controller.js         # AI 入口: 选择难度策略
 │   │   ├── strategy-easy.js         # 简单：随机
@@ -120,18 +123,10 @@ miniprogram/
 │   └── history/
 │       └── history-service.js       # 记录保存/查询/统计
 │
-├── model/                           # ★ 数据层 —— 实体 + 状态 + 缓存
-│   ├── entities/
-│   │   ├── tile.js                  # Tile 实体: 工厂方法+属性校验
-│   │   ├── player.js                # Player 实体
-│   │   ├── game-state.js            # GameState 实体: 不可变更新
-│   │   └── room.js                  # Room 实体
-│   ├── store/
-│   │   └── app-store.js             # 全局轻量 Event Store（~50行）
-│   └── cache/
-│       ├── storage-keys.js          # storage key 常量
-│       ├── settings-cache.js        # 设置读写（音效/振动/动画速度）
-│       └── history-cache.js         # 最近20局本地缓存
+├── model/                           # ★ 数据层 —— 实体
+│   └── entities/
+│       ├── tile.js                  # Tile 实体: 工厂方法+属性校验
+│       └── game-state.js            # GameState 实体: createInitialState + drawFromPool
 │
 ├── cloud/                           # ★ 通信层 —— 所有外部 IO
 │   ├── cloud-functions/
@@ -140,7 +135,7 @@ miniprogram/
 │   │   ├── user-call.js             # user 云函数调用封装
 │   │   └── history-call.js          # history 云函数调用封装
 │   ├── watch/
-│   │   ├── room-watcher.js          # rooms 集合 DB watch
+│   │   ├── room-watcher.js          # rooms 集合轮询（1.5s 间隔）
 │   │   ├── game-watcher.js          # games 集合 DB watch
 │   │   └── watcher-base.js          # watch 基类: 重连/降级轮询
 │   ├── auth/
@@ -150,12 +145,11 @@ miniprogram/
 │       └── share-helper.js          # onShareAppMessage 统一配置
 │
 └── utils/                           # ★ 工具层 —— 纯函数，无副作用
-    ├── shuffle.js                   # Fisher-Yates 洗牌
+    ├── shuffle.js                   # Fisher-Yates 洗牌 + createDeck
     ├── sort-hand.js                 # 手牌排序 (SortKey 全序关系)
     ├── logger.js                    # 分级日志 (debug/info/warn/error)
-    ├── debounce.js                  # 防抖
-    ├── throttle.js                  # 节流
-    ├── format.js                    # 日期/时长/百分比格式化
+    ├── login.js                     # 游客 ID / 微信登录 / 本地记录迁移
+    ├── audio.js                     # 音效统一管理（draw/guess_correct/victory/defeat）
     └── local-storage.js             # wx.setStorage/getStorage 统一封装 + 异常兜底
 ```
 

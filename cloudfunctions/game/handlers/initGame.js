@@ -4,13 +4,11 @@
 const GameEngine = require('./_engine');
 
 module.exports = async function (event, caller, db) {
-  const { roomId, players, mode, difficulty, testHands, testFirstPlayer, poolTiles } = event;
+  const { roomId, players, mode, difficulty } = event;
   if (!roomId || !players || !mode) return { success: false, error: 'INVALID_PARAMS' };
 
   try {
-    const gameState = testHands
-      ? GameEngine.createControlledState({ roomId, players, mode, difficulty, hands: testHands, firstPlayer: testFirstPlayer, poolTiles: poolTiles })
-      : GameEngine.createInitialState({ roomId, players, mode, difficulty });
+    const gameState = GameEngine.createInitialState({ roomId, players, mode, difficulty });
 
     // 收集所有玩家初始 Joker
     var initialJokers = {};
@@ -56,7 +54,11 @@ module.exports = async function (event, caller, db) {
     const res = await db.collection('games').add({ data: gameDoc });
     const gameId = res._id;
 
-    await db.collection('rooms').doc(roomId).update({ data: { status: 'playing', gameId, updatedAt: db.serverDate() } });
+    // 通过 roomId 字段查询房间文档，再按 _id 更新（doc() 按 _id 查，非 roomId 字段）
+    var roomDocs = await db.collection('rooms').where({ roomId: roomId.toUpperCase() }).get();
+    if (roomDocs.data.length > 0) {
+      await db.collection('rooms').doc(roomDocs.data[0]._id).update({ data: { status: 'playing', gameId, updatedAt: db.serverDate() } });
+    }
 
     const clientView = GameEngine.getClientView({ ...gameState, _id: gameId }, caller);
     return { success: true, data: { gameId, myHand: clientView.self.hand, turnOrder: gameState.turnOrder, currentTurnOpenid: gameState.turnOrder[gameState.turnIndex], poolRemaining: GameEngine.poolRemaining(gameState.tiles) }};

@@ -98,7 +98,7 @@ Page({
   },
 
   onRoomCodeInput(e) {
-    this.setData({ roomCode: e.detail.value });
+    this.setData({ roomCode: e.detail.value.toUpperCase() });
   },
 
   onRoomPasswordInput(e) {
@@ -106,7 +106,7 @@ Page({
   },
 
   async onConfirmJoin() {
-    var code = this.data.roomCode.trim();
+    var code = this.data.roomCode.trim().toUpperCase();
     if (!code) { showToast('请输入房间码'); return; }
     if (code.length !== 6) { showToast('房间码为6位'); return; }
 

@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **达芬奇密码 (Da Vinci Code)** — 微信小程序桌游。将线下经典推理桌游完整还原，支持单机 AI 对战和好友联机。基于 WeChat CloudBase (腾讯云开发) 作为后端。
 
 - **AppID**: `wx27833863a4d377ce`
-- **基础库**: v3.16.1
+- **基础库**: v2.20.1
 - **CloudBase 环境**: `testenv001-d7gtpfjahfa6ab5f6`（`miniprogram/app.js` 第 8 行）
 - **项目类型**: 微信小程序原生框架 + 云开发
 - **Git 仓库**: `jingwu0210/da-vinci-code-miniprogram.git`，`main` 分支，commit 历史见 `docs/DEV-LOG.md`
@@ -50,15 +50,14 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 | `model/entities/game-state.js` | `createInitialState` + `drawFromPool`(颜色分池) + `getClientView` |
 | `service/game/guess-handler.js` | `isGuessMatch`(仅数值判定) + `validateGuess` |
 | `service/game/turn-manager.js` | 状态转移表 + `PASS_REVEALS_TILE` |
-| `utils/game-engine.js` | 前端统一入口（收拢以上所有纯逻辑） |
+| `cloudfunctions/game/handlers/_engine.js` | 云函数端游戏引擎（创建状态/排序/摸牌/猜测判定/客户端视图） |
 
 ### 业务服务层（Phase 3）
 
 | 文件 | 职责 |
 |------|------|
 | `service/auth/auth-service.js` | 登录/游客/会话管理（`initSession`/`tryGuestMode`/`updateProfile`） |
-| `service/room/room-manager.js` | 房间生命周期（`createAndJoin`/`joinById`/`leave`/`toggleReady`/`startGame`） |
-| `service/room/ready-checker.js` | 准备状态校验 |
+| `service/room/room-manager.js` | 房间生命周期（`createAndJoin`/`joinById`/`leave`/`disbandRoom`/`toggleReady`/`startGame`） |
 | `cloud/cloud-functions/user-call.js` | user 云函数调用封装 |
 | `cloud/cloud-functions/room-call.js` | room 云函数调用封装 |
 | `cloud/auth/wechat-auth.js` | `wx.login` / `checkSession` / 授权状态管理 |
@@ -70,10 +69,9 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 | 云函数 | 文件 | 状态 |
 |--------|------|:---:|
 | `game` | `cloudfunctions/game/index.js` + 8 handlers + 4 AI 策略文件 + `_engine.js` | ✅ |
-| `room` | `cloudfunctions/room/index.js` + 5 handlers (createRoom/joinRoom/leaveRoom/toggleReady/startGame) | ✅ |
+| `room` | `cloudfunctions/room/index.js` + 7 handlers (createRoom/getRoom/joinRoom/leaveRoom/disbandRoom/toggleReady/startGame) | ✅ |
 | `user` | `cloudfunctions/user/index.js` + 3 handlers (login/getProfile/updateProfile) | ✅ |
 | `history` | `cloudfunctions/history/package.json` (仅模板) | ⏳ |
-| `quickstartFunctions` | 保留作参考模板 | — |
 
 **跨云函数调用**: `room.startGame` 调用 `game.initGame` 时需显式传入 `callerOpenid`（`cloud.getWXContext().OPENID` 在跨函数调用时会丢失）。`game/index.js` 通过 `event.callerOpenid || cloud.getWXContext().OPENID` 获取真实调用者身份。
 
@@ -84,8 +82,8 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 | 登录 | `view/pages/login/` | ✅ |
 | 大厅 | `view/pages/lobby/` | ✅ |
 | 游戏主界面 | `view/pages/board/` | ✅ 骨架完成，交互完善中 |
-| 教程 | `view/pages/tutorial/` | ⏳ |
-| 历史 | `view/pages/history/` | ⏳ |
+| 教程 | `view/pages/tutorial/` | ✅ |
+| 历史 | `view/pages/history/` | ✅ |
 | 设置 | `view/pages/settings/` | ✅ |
 | 用户协议 | `view/pages/agreement/` | ✅ |
 | 创建房间 | `view/subpackages/room/create/` | ✅ |
@@ -135,10 +133,9 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 ## 设计规范
 
 所有视觉/交互决策以 [`docs/DESIGN-SPEC.md`](docs/DESIGN-SPEC.md) 为准：
-- 全局统一暗色毛毡背景 `#2C3A4A`
+- 全局明亮主题 `#F3F4F6` + 深色导航栏 `#1F2937`
 - 牌面 1:2 + 立体厚度效果 + 哑面磨砂纹理
 - 不显示牌池（仅摸牌阶段显示分色剩余计数）
-- 全局统一暗色毛毡背景 `#2C3A4A`
 
 ## 规范文档
 
@@ -161,8 +158,9 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 | 4 — Board 游戏界面 | ✅ | 待提交（前端细节待调整） |
 | 5 — AI 对战 | ✅ | 待提交（三难度策略完善，概率参数可持续调优） |
 | 6 — 结算 & 历史 | ✅ | `f8aaec6` ~ `8875580` |
-| 7 — 体验优化（动画/教程/音效/UI/房间） | ✅ | 已提交 |
-| 8 — 主题统一 + 打磨上线 | 🏗 | 新分支 |
+| 7 — 体验优化（动画/教程/音效/UI/房间） | ✅ | `f59de3c` / `c2a0d62` |
+| 8 — UI 全局风格迭代（明亮主题+深色导航栏+Figma对齐+多页面重构+Lucide图标） | ✅ | `e852dd9` / `e053d80` |
+| 9 — 打磨上线 | ✅ | 待提交 |
 
 
 ## 当有问题时需要修复或者debug时
