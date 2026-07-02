@@ -1,33 +1,33 @@
-.page { height:100vh; background:#2C3A4A; display:flex; flex-direction:column; align-items:center; padding:48rpx 32rpx; overflow:hidden; position:relative; box-sizing:border-box; }
+.page { height:100vh; background:var(--bg-page); display:flex; flex-direction:column; align-items:center; padding:48rpx 32rpx; overflow:hidden; position:relative; box-sizing:border-box; }
 
 .loading-ctn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.loading-text { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, #8A8A90); }
+.loading-text { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, var(--text-secondary)); }
 
 /* ── 胜/负标题 ── */
 .result-header { display:flex; flex-direction:column; align-items:center; margin:32rpx 0 48rpx; z-index:1; }
 .result-emoji { font-size:96rpx; }
 .result-title { font-size:var(--fs-title, 44rpx); font-weight:700; margin-top:16rpx; }
 .winner .result-title { color:#C9A84C; }
-.loser .result-title { color:var(--text-secondary, #8A8A90); }
+.loser .result-title { color:var(--text-secondary, var(--text-secondary)); }
 
 /* ── 卡片 ── */
-.info-card, .players-card { width:100%; background:rgba(235,235,229,0.06); border:1rpx solid #3E4A58; border-radius:var(--radius-md, 12rpx); padding:24rpx 32rpx; margin-bottom:24rpx; }
+.info-card, .players-card { width:100%; background:var(--bg-card); border-radius:24rpx; padding:24rpx 32rpx; margin-bottom:24rpx; box-shadow:0 2rpx 8rpx rgba(0,0,0,0.08); }
 .info-row { display:flex; justify-content:space-between; padding:12rpx 0; }
-.info-label { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, #8A8A90); }
-.info-value { font-size:var(--fs-body, 28rpx); color:var(--text-primary, #EBEBE5); }
+.info-label { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, var(--text-secondary)); }
+.info-value { font-size:var(--fs-body, 28rpx); color:var(--text-primary, var(--text-primary)); }
 
-.section-title { font-size:var(--fs-subtitle, 36rpx); color:var(--text-primary, #EBEBE5); margin-bottom:16rpx; font-weight:600; }
+.section-title { font-size:var(--fs-subtitle, 36rpx); color:var(--text-primary, var(--text-primary)); margin-bottom:16rpx; font-weight:600; }
 .player-row { display:flex; align-items:center; padding:12rpx 0; }
 .player-rank { font-size:36rpx; margin-right:16rpx; }
-.player-name { flex:1; font-size:var(--fs-body, 28rpx); color:var(--text-primary, #EBEBE5); }
+.player-name { flex:1; font-size:var(--fs-body, 28rpx); color:var(--text-primary, var(--text-primary)); }
 .winner-name { color:#C9A84C; font-weight:600; }
-.player-tiles { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); }
+.player-tiles { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, var(--text-secondary)); }
 
 /* ── 按钮 ── */
-.btn-group { width:100%; margin-top:32rpx; display:flex; flex-direction:column; gap:16rpx; }
-.btn { width:100%; height:96rpx; border-radius:var(--radius-sm, 8rpx); font-size:var(--fs-body, 28rpx); display:flex; align-items:center; justify-content:center; }
-.btn-share { background:#C9A84C; color:#2C3A4A; border:none; }
-.btn-lobby { background:rgba(235,235,229,0.06); color:var(--text-primary, #EBEBE5); border:1rpx solid #3E4A58; }
+.btn-group { width:100%; margin-top:32rpx; display:flex; flex-direction:column; gap:16rpx; padding-bottom:calc(env(safe-area-inset-bottom, 0) + 16rpx); }
+.btn { width:100%; height:96rpx; border-radius:24rpx; font-size:var(--fs-subtitle); display:flex; align-items:center; justify-content:center; font-weight:500; }
+.btn-share { background:#C9A84C; color:#FFFFFF; border:none; box-shadow:0 2rpx 4rpx rgba(0,0,0,0.1); }
+.btn-lobby { background:var(--secondary-button); color:var(--secondary-button-foreground); border:none; }
 
 /* === 结果光晕 === */
 @keyframes win-glow {

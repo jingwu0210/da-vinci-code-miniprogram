@@ -1,22 +1,67 @@
 /* 房间等待室 */
-.room-page { background: #2C3A4A; min-height: 100vh; }
-.main { padding: 32rpx; }
-.label { font-size: 24rpx; color: #8A8A90; margin: 24rpx 0 16rpx; display: block; }
-.code-box {
-  height: 120rpx; display: flex; align-items: center; justify-content: center; gap: 24rpx;
-  background: rgba(235,235,229,0.06); border-radius: 8rpx; border: 1rpx solid #3E4A58;
+.room-page { background: var(--bg-page); min-height: 100vh; }
+.main { padding: 0 32rpx 48rpx; }
+
+/* 房间码深色条 */
+.code-bar {
+  margin: 24rpx 0;
+  height: 88rpx; background: #1F2937; border-radius: 24rpx;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32rpx;
 }
-.code { font-size: 48rpx; font-weight: 700; color: #EBEBE5; font-family: 'Courier New', monospace; letter-spacing: 16rpx; }
-.copy { font-size: 24rpx; color: #8A8A90; }
-.btn-invite { width: 100%; height: 96rpx; line-height: 96rpx; margin: 24rpx 0 32rpx; background: rgba(235,235,229,0.08); color: #EBEBE5; border-radius: 8rpx; font-size: 28rpx; border: none; }
-.player-row { height: 112rpx; display: flex; align-items: center; gap: 24rpx; padding: 0 24rpx; border-bottom: 1rpx solid #3E4A58; }
-.p-avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: #3E4A58; display: flex; align-items: center; justify-content: center; font-size: 28rpx; }
-.p-name { font-size: 28rpx; color: #EBEBE5; display: block; }
-.p-ready { font-size: 24rpx; display: block; margin-top: 4rpx; }
-.p-ready.ready { color: #4A7C59; }
-.p-ready.unready { color: #8A8A90; }
-.placeholder .p-name { color: #8A8A90; }
-.actions { display: flex; gap: 24rpx; margin-top: 48rpx; }
-.btn-secondary { flex: 1; height: 96rpx; line-height: 96rpx; background: transparent; color: #8A8A90; border: 1rpx solid #3E4A58; border-radius: 8rpx; font-size: 28rpx; }
-.btn-start { width: 100%; height: 96rpx; line-height: 96rpx; margin-top: 24rpx; background: rgba(235,235,229,0.08); color: #EBEBE5; border-radius: 8rpx; font-size: 32rpx; font-weight: 500; border: none; }
-.btn-disband { width: 100%; height: 80rpx; line-height: 80rpx; margin-top: 16rpx; background: transparent; color: #6A4A4A; border: none; font-size: 24rpx; }
+.code-text { font-size: 30rpx; font-weight: 500; color: #FFFFFF; font-family: 'Courier New', monospace; letter-spacing: 4rpx; }
+.code-actions { display: flex; align-items: center; }
+.code-action { font-size: 32rpx; }
+.share-btn-inline {
+  background: transparent; border: none; padding: 0; margin: 0;
+  font-size: 32rpx; line-height: 1;
+}
+.share-btn-inline::after { border: none; }
+
+.label { font-size: var(--fs-body); color: var(--text-secondary); margin: 24rpx 0 16rpx; display: block; }
+
+/* 玩家卡片 */
+.player-list { display: flex; flex-direction: column; gap: 12rpx; }
+.player-card {
+  background: var(--bg-card); border-radius: 24rpx; padding: 24rpx 28rpx;
+  display: flex; align-items: center; gap: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+}
+.player-card.placeholder {
+  border: 2rpx dashed #D1D5DB; background: transparent;
+  box-shadow: none; justify-content: center;
+}
+.p-avatar {
+  width: 80rpx; height: 80rpx; border-radius: 50%;
+  background: var(--divider); display: flex; align-items: center;
+  justify-content: center; font-size: 36rpx; flex-shrink: 0;
+}
+.p-avatar.empty { opacity: 0.4; }
+.p-info { flex: 1; }
+.p-name-row { display: flex; align-items: center; gap: 12rpx; }
+.p-name { font-size: var(--fs-body); color: var(--text-primary); font-weight: 500; }
+.p-host {
+  font-size: 22rpx; background: #F59E0B; color: #FFFFFF;
+  padding: 2rpx 12rpx; border-radius: 8rpx; font-weight: 500;
+}
+.p-status { display: flex; align-items: center; gap: 8rpx; margin-top: 6rpx; }
+.p-dot {
+  width: 16rpx; height: 16rpx; border-radius: 50%; flex-shrink: 0;
+}
+.p-dot.ready { background: var(--success); }
+.p-dot.unready { background: #D1D5DB; }
+.p-ready-text { font-size: var(--fs-caption); color: var(--text-secondary); }
+.p-empty-text { font-size: var(--fs-body); color: var(--text-secondary); }
+
+/* 解散 */
+.disband-area { display: flex; justify-content: center; margin-top: 24rpx; }
+.disband-btn {
+  font-size: var(--fs-body); color: var(--error);
+  background: transparent; padding: 8rpx 0;
+}
+
+/* 底部双按钮 */
+.bottom-actions {
+  display: flex; gap: 24rpx; margin-top: 48rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 16rpx);
+}

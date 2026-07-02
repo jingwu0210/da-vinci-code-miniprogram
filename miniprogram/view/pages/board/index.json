@@ -1,4 +1,5 @@
 {
+  "navigationStyle": "custom",
   "usingComponents": {
     "game-tile": "../../components/game-tile/index",
     "player-hand": "../../components/player-hand/index",

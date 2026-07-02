@@ -30,11 +30,176 @@ page {
   width: 100vw;
   max-width: 100vw;
   box-sizing: border-box;
-}
-
-/* 全局统一暗色毛毡背景 */
-page {
-  background: var(--felt);
+  background: var(--bg-page);
   font-size: var(--fs-body);
   color: var(--text-primary);
+}
+
+/* ========================================
+   全局按钮类
+   ======================================== */
+
+/* 主按钮 */
+.btn-primary {
+  width: 100%;
+  height: var(--btn-height);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: var(--btn-font-size);
+  font-weight: 500;
+  border-radius: var(--btn-radius);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+}
+.btn-primary:active {
+  opacity: 0.85;
+}
+.btn-primary[disabled] {
+  background: #9CA3AF;
+  opacity: 0.5;
+}
+
+/* 次按钮 */
+.btn-secondary {
+  width: 100%;
+  height: var(--btn-height);
+  background: var(--secondary-button);
+  color: var(--secondary-button-foreground);
+  font-size: var(--btn-font-size);
+  font-weight: 500;
+  border-radius: var(--btn-radius);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.06);
+}
+.btn-secondary:active {
+  opacity: 0.85;
+}
+
+/* 幽灵按钮 */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--fs-body);
+  border: none;
+  padding: 16rpx 0;
+  text-align: center;
+}
+.btn-ghost:active {
+  opacity: 0.7;
+}
+
+/* 危险按钮 */
+.btn-danger {
+  width: 100%;
+  height: var(--btn-height);
+  background: #FEE2E2;
+  color: #EF4444;
+  font-size: var(--btn-font-size);
+  font-weight: 500;
+  border-radius: var(--btn-radius);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-danger:active {
+  opacity: 0.85;
+}
+
+/* 文字危险操作 */
+.btn-danger-text {
+  background: transparent;
+  color: #EF4444;
+  font-size: var(--fs-body);
+  border: none;
+  padding: 16rpx 0;
+  text-align: center;
+}
+
+/* 固定宽度主按钮（居中场景） */
+.btn-primary-fixed {
+  width: 600rpx;
+  height: var(--btn-height);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: var(--btn-font-size);
+  font-weight: 500;
+  border-radius: var(--btn-radius);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+  margin: 0 auto;
+}
+.btn-primary-fixed:active {
+  opacity: 0.85;
+}
+
+/* ========================================
+   卡片
+   ======================================== */
+.card {
+  background: var(--bg-card);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+}
+
+/* ========================================
+   输入框
+   ======================================== */
+.input-field {
+  width: 100%;
+  height: var(--btn-height);
+  background: var(--bg-card);
+  border: 1rpx solid var(--divider);
+  border-radius: 16rpx;
+  color: var(--text-primary);
+  font-size: var(--fs-body);
+  text-align: center;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   Toggle / Switch
+   ======================================== */
+.toggle-switch {
+  width: 102rpx;
+  height: 62rpx;
+  border-radius: 32rpx;
+  position: relative;
+  transition: background 200ms ease;
+}
+.toggle-switch.on {
+  background: #1F2937;
+}
+.toggle-switch.off {
+  background: #D1D5DB;
+}
+.toggle-dot {
+  position: absolute;
+  top: 6rpx;
+  width: 50rpx;
+  height: 50rpx;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 1rpx 3rpx rgba(0,0,0,0.2);
+  transition: left 200ms ease;
+}
+.toggle-switch.on .toggle-dot {
+  left: 46rpx;
+}
+.toggle-switch.off .toggle-dot {
+  left: 6rpx;
 }

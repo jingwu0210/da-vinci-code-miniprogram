@@ -1,27 +1,18 @@
-<!-- 创建/加入房间页 -->
+<!-- 创建房间页 -->
 <view class="create-page">
   <view class="main">
-    <view class="tab-switch">
-      <view class="tab-btn {{tab==='create'?'active':''}}" bindtap="onSwitchTab" data-tab="create">创建房间</view>
-      <view class="tab-btn {{tab==='join'?'active':''}}" bindtap="onSwitchTab" data-tab="join">加入房间</view>
+    <text class="label">选择人数</text>
+
+    <!-- Segmented Control -->
+    <view class="seg-control">
+      <view class="seg-item {{playerCount===2?'active':''}}" bindtap="onPlayerCount" data-n="2">2</view>
+      <view class="seg-item {{playerCount===3?'active':''}}" bindtap="onPlayerCount" data-n="3">3</view>
+      <view class="seg-item {{playerCount===4?'active':''}}" bindtap="onPlayerCount" data-n="4">4</view>
     </view>
 
-    <block wx:if="{{tab==='create'}}">
-      <text class="label">玩家人数</text>
-      <view class="radio-group">
-        <view class="radio {{playerCount===2?'active':''}}" bindtap="onPlayerCount" data-n="2">2人</view>
-        <view class="radio {{playerCount===3?'active':''}}" bindtap="onPlayerCount" data-n="3">3人</view>
-        <view class="radio {{playerCount===4?'active':''}}" bindtap="onPlayerCount" data-n="4">4人</view>
-      </view>
-      <text class="label">房间密码 (可选，最多 6 位数字)</text>
-      <input class="input" value="{{password}}" bindinput="onPasswordInput" placeholder="输入 6 位数字密码" maxlength="6" type="number" />
-      <button class="btn-create" bindtap="onCreate">创建房间</button>
-    </block>
+    <text class="label">房间密码（选填，最多4位数字）</text>
+    <input class="input password-input" value="{{password}}" bindinput="onPasswordInput" placeholder="4位数字" maxlength="4" type="number" />
 
-    <block wx:if="{{tab==='join'}}">
-      <text class="label">房间码</text>
-      <input class="input room-code" value="{{roomCode}}" bindinput="onRoomCodeInput" placeholder="输入 6 位房间码" maxlength="6" />
-      <button class="btn-create" bindtap="onJoin">加入房间</button>
-    </block>
+    <button class="btn-primary-fixed" bindtap="onCreate">创建房间</button>
   </view>
 </view>

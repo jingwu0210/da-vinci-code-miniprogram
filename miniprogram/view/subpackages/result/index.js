@@ -108,7 +108,9 @@ function _buildMinimalRecord(data, winner) {
   });
   players.forEach(function(p) { p.isWinner = won ? (p.nickName === myName) : (p.nickName !== myName && p.nickName !== 'AI'); });
   players.sort(function(a, b) { return a.isWinner ? -1 : 1; });
-  return { mode: 'ai', difficulty: null, totalTurns: data.game ? data.game.turnNumber : 0, duration: 0, players: players };
+  var turns = data.game ? data.game.turnNumber : 0;
+  if (!turns && data.turnLog) { turns = data.turnLog.length; }
+  return { mode: 'ai', difficulty: null, totalTurns: turns, duration: 0, players: players };
 }
 
 function _buildLocalRecord(s, winner) {

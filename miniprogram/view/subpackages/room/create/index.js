@@ -7,16 +7,14 @@ var { showToast, showLoading, hideLoading } = require('../../../../common/modal-
 var store = require('../../../../common/store');
 
 Page({
-  data: { tab: 'create', playerCount: 2, password: '', roomCode: '' },
+  data: { playerCount: 2, password: '' },
 
-  onSwitchTab(e) { this.setData({ tab: e.currentTarget.dataset.tab }); },
   onPlayerCount(e) { this.setData({ playerCount: parseInt(e.currentTarget.dataset.n) }); },
   onPasswordInput(e) {
-    // 只允许数字
-    var val = (e.detail.value || '').replace(/[^0-9]/g, '').slice(0, 6);
+    // 只允许数字，最多4位
+    var val = (e.detail.value || '').replace(/[^0-9]/g, '').slice(0, 4);
     this.setData({ password: val });
   },
-  onRoomCodeInput(e) { this.setData({ roomCode: e.detail.value.toUpperCase() }); },
 
   async onCreate() {
     var self = this;
@@ -32,12 +30,4 @@ Page({
     hideLoading();
   },
 
-  async onJoin() {
-    var code = this.data.roomCode.trim();
-    if (!code || code.length !== 6) { showToast('请输入 6 位房间码'); return; }
-    try {
-      await RoomManager.joinRoom(code);
-      wx.redirectTo({ url: buildRoute(ROUTES.ROOM_DETAIL, { roomId: code }) });
-    } catch (e) { showToast(e.message || '加入失败'); }
-  },
 });

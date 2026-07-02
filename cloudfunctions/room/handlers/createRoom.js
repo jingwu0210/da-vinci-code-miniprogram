@@ -43,7 +43,7 @@ module.exports = async function (event, caller, db) {
       roomId,
       mode,
       maxPlayers,
-      password,
+      password: String(password || ''),
       difficulty,
       creatorOpenid: caller,
       status: 'waiting',

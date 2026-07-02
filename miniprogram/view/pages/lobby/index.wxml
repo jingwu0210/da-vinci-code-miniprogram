@@ -1,58 +1,88 @@
 <!-- 大厅页 -->
 <view class="lobby-page">
-  <view class="top-bar">
-    <text class="top-exit" catchtap="onTapExit">‹ 退出</text>
-    <text class="top-title">达芬奇密码</text>
-    <view class="top-spacer"></view>
-  </view>
-  <scroll-view class="main" scroll-y>
-    <view class="user-card" bindtap="onTapSettings">
-      <image class="avatar-img" src="{{user.avatarUrl}}" mode="aspectFill" wx:if="{{user.avatarUrl}}"/>
-      <view class="avatar" wx:else>👤</view>
-      <view class="user-info">
-        <view class="nick">{{user.nickName || '玩家A'}}</view>
-        <view class="stats" wx:if="{{user.stats}}">胜 {{user.stats.wins}} · 负 {{user.stats.losses}} · 胜率 {{winRate}}%</view>
+  <!-- 自定义导航栏：深色底 -->
+  <view class="nav-bar" style="padding-top:{{statusBarHeight + 8}}px; padding-bottom:12rpx">
+    <view class="nav-left" bindtap="onTapSettings">
+      <image class="nav-avatar" src="{{user.avatarUrl}}" mode="aspectFill" wx:if="{{user.avatarUrl}}"/>
+      <view class="nav-avatar-placeholder" wx:else>👤</view>
+      <view class="nav-user">
+        <text class="nav-nick">{{user.nickName || '玩家'}}</text>
+        <text class="nav-stats">胜 {{user.stats.wins || 0}} · 负 {{user.stats.losses || 0}} · 胜率 {{winRate}}%</text>
       </view>
-      <text class="card-arrow">›</text>
+    </view>
+  </view>
+
+  <scroll-view class="main" scroll-y enhanced show-scrollbar="{{false}}">
+    <!-- Hero -->
+    <view class="hero" style="padding-top:{{heroTopPadding}}px">
+      <text class="hero-title">达芬奇密码</text>
+      <text class="hero-sub">逻辑推理 · 洞察人心</text>
     </view>
 
-    <view class="mode-section">
-      <view class="mode-btn ai" bindtap="onTapAi">
-        <text class="mode-icon">🤖</text>
-        <view class="mode-info"><text class="mode-title">人机对战</text><text class="mode-desc">选择难度，与 AI 一决高下</text></view>
-        <text class="mode-arrow">→</text>
+    <view class="section-gap"></view>
+
+    <!-- 牌组装饰 -->
+    <view class="tile-row">
+      <view class="deco-tile black"><text class="deco-num">3</text></view>
+      <view class="deco-tile white"><text class="deco-num w">5</text></view>
+      <view class="deco-tile black"><text class="deco-num" style="color:#C9A84C;font-size:36rpx">—</text></view>
+      <view class="deco-tile black"><text class="deco-num">11</text></view>
+      <view class="deco-tile white"><text class="deco-num w">7</text></view>
+    </view>
+
+    <view class="section-gap"></view>
+
+    <!-- 主按钮区 -->
+    <view class="btn-section">
+      <view class="lobby-btn" bindtap="onTapAi">
+        <image class="lobby-btn-icon" src="/images/icons/bot.svg" />
+        <text class="lobby-btn-title">单机人机对战</text>
       </view>
-      <view class="mode-btn friends" bindtap="onTapFriends">
-        <text class="mode-icon">👥</text>
-        <view class="mode-info"><text class="mode-title">好友联机</text><text class="mode-desc">创建/加入房间，邀请好友</text></view>
-        <text class="mode-arrow">→</text>
+
+      <view class="lobby-btn" bindtap="onTapFriends">
+        <image class="lobby-btn-icon" src="/images/icons/users.svg" />
+        <text class="lobby-btn-title">好友房间</text>
       </view>
+
+      <view class="lobby-btn" bindtap="onTapTutorial">
+        <image class="lobby-btn-icon" src="/images/icons/book-open.svg" />
+        <text class="lobby-btn-title">游戏规则</text>
+      </view>
+
+      <view class="lobby-btn" bindtap="onTapHistory">
+        <image class="lobby-btn-icon" src="/images/icons/clipboard.svg" />
+        <text class="lobby-btn-title">历史对局</text>
+      </view>
+
+      <view class="lobby-btn" bindtap="onTapSettings">
+        <image class="lobby-btn-icon" src="/images/icons/settings.svg" />
+        <text class="lobby-btn-title">系统设置</text>
+      </view>
+    </view>
+
+    <view class="section-gap"></view>
+
+    <view class="footer">
+      <text class="footer-text">V1.0 · 经典推理桌游</text>
     </view>
   </scroll-view>
 
-  <view class="bottom-bar">
-    <text class="tab" bindtap="onTapTutorial">📖 玩法说明</text>
-    <text class="tab" bindtap="onTapHistory">📋 历史对局</text>
-  </view>
+  <!-- 好友房间弹窗 -->
+  <view class="modal-mask" wx:if="{{showRoomModal}}" bindtap="onCancelRoomModal"></view>
+  <view class="modal-panel" wx:if="{{showRoomModal}}">
+    <text class="modal-title">好友房间</text>
 
-  <!-- 难度选择弹窗 -->
-  <view class="modal-mask" wx:if="{{showDifficulty}}" bindtap="onCancelDifficulty"></view>
-  <view class="modal-panel" wx:if="{{showDifficulty}}">
-    <text class="modal-title">选择 AI 难度</text>
-    <view class="diff-list">
-      <view class="diff-item {{selectedDifficulty === 'easy' ? 'active' : ''}}" data-diff="easy" bindtap="onSelectDifficulty">
-        <text class="diff-name">简单</text><text class="diff-hint">随机决策，适合新手</text>
-      </view>
-      <view class="diff-item {{selectedDifficulty === 'medium' ? 'active' : ''}}" data-diff="medium" bindtap="onSelectDifficulty">
-        <text class="diff-name">中等</text><text class="diff-hint">逻辑推理，旗鼓相当</text>
-      </view>
-      <view class="diff-item {{selectedDifficulty === 'hard' ? 'active' : ''}}" data-diff="hard" bindtap="onSelectDifficulty">
-        <text class="diff-name">困难</text><text class="diff-hint">概率矩阵，最强挑战</text>
-      </view>
+    <view wx:if="{{!showJoinInput}}">
+      <button class="btn-primary" bindtap="onTapCreateRoom">创建房间</button>
+      <button class="btn-secondary" bindtap="onTapShowJoin" style="margin-top:16rpx">加入房间</button>
+      <view class="btn-ghost" bindtap="onCancelRoomModal" style="margin-top:16rpx">取消</view>
     </view>
-    <view class="modal-btns">
-      <button class="modal-cancel" bindtap="onCancelDifficulty">取消</button>
-      <button class="modal-confirm" bindtap="onConfirmAi">开始对战</button>
+
+    <view wx:else>
+      <input class="input-field" type="text" maxlength="6" placeholder="6位房间码" value="{{roomCode}}" bindinput="onRoomCodeInput" style="letter-spacing:16rpx;font-family:'Courier New',monospace;margin-bottom:16rpx"/>
+      <input class="input-field" type="number" maxlength="4" placeholder="4位密码（选填）" value="{{roomPassword}}" bindinput="onRoomPasswordInput" style="letter-spacing:8rpx;font-family:'Courier New',monospace;margin-bottom:20rpx"/>
+      <button class="btn-primary" bindtap="onConfirmJoin">确认加入</button>
+      <view class="btn-ghost" bindtap="onCancelJoinInput" style="margin-top:12rpx">取消</view>
     </view>
   </view>
 </view>

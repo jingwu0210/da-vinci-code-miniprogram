@@ -1,21 +1,21 @@
-.page { background:#2C3A4A; min-height:100vh; display:flex; flex-direction:column; }
+.page { background:var(--bg-page); min-height:100vh; display:flex; flex-direction:column; }
 .swiper { flex:1; height:100vh; }
 
-.step-scroll { height:100%; padding:32rpx 32rpx 120rpx; box-sizing:border-box; width:100%; overflow-x:hidden; }
+.step-scroll { height:100%; padding:32rpx 32rpx calc(env(safe-area-inset-bottom, 0) + 120rpx); box-sizing:border-box; width:100%; overflow-x:hidden; }
 .step-header { margin-bottom:24rpx; }
-.step-num { font-size:22rpx; color:#8A8A90; display:block; margin-bottom:4rpx; }
-.step-title { font-size:40rpx; color:#EBEBE5; font-weight:700; }
+.step-num { font-size:22rpx; color:var(--text-secondary); display:block; margin-bottom:4rpx; }
+.step-title { font-size:40rpx; color:var(--text-primary); font-weight:700; }
 .step-body { margin-top:8rpx; width:100%; overflow-x:hidden; }
-.step-desc { font-size:28rpx; color:#A0A0A8; line-height:1.8; display:block; margin-bottom:16rpx; word-break:break-all; }
+.step-desc { font-size:28rpx; color:var(--text-secondary); line-height:1.8; display:block; margin-bottom:16rpx; word-break:break-all; }
 
 /* === Example box === */
-.example-box { background:rgba(235,235,229,0.06); border:1rpx solid #3E4A58; border-radius:12rpx; padding:24rpx; margin:16rpx 0; }
-.example-label { font-size:24rpx; color:#C9A84C; font-weight:600; display:block; margin-bottom:12rpx; }
-.example-caption { font-size:22rpx; color:#6A6A70; display:block; margin-top:12rpx; line-height:1.6; }
+.example-box { background:var(--bg-card); border:1rpx solid var(--divider); border-radius:24rpx; padding:24rpx; margin:16rpx 0; box-shadow:0 2rpx 8rpx rgba(0,0,0,0.06); }
+.example-label { font-size:24rpx; color:var(--gold); font-weight:600; display:block; margin-bottom:12rpx; }
+.example-caption { font-size:22rpx; color:var(--text-secondary); display:block; margin-top:12rpx; line-height:1.6; }
 
 /* === Rule list === */
 .rule-list { display:flex; flex-direction:column; gap:8rpx; }
-.rule-item { font-size:26rpx; color:#A0A0A8; line-height:1.6; }
+.rule-item { font-size:26rpx; color:var(--text-secondary); line-height:1.6; }
 
 /* === Demo tiles === */
 .tile-row { display:flex; gap:10rpx; flex-wrap:wrap; }

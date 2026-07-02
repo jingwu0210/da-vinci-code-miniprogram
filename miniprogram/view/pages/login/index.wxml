@@ -11,13 +11,16 @@
   <!-- 品牌 -->
   <view class="brand">
     <view class="brand-title">达芬奇密码</view>
-    <view class="brand-sub">DA VINCI CODE</view>
+    <view class="brand-sub">经典逻辑推理桌游</view>
   </view>
 
   <!-- 操作按钮 -->
-  <view class="actions" wx:if="{{!loading}}">
-    <button class="btn btn-wechat" bindtap="onTapLogin" wx:if="{{!loggedIn}}">微信登录</button>
-    <view class="btn btn-guest" bindtap="onTapGuest" wx:if="{{!loggedIn}}">游客模式 · 直接开始</view>
+  <view class="actions" wx:if="{{!loggedIn && !loading}}">
+    <view class="btn btn-wechat" bindtap="onTapLogin">
+      <view class="btn-spinner" wx:if="{{loginLoading}}"></view>
+      <text wx:else>微信快捷登录</text>
+    </view>
+    <view class="btn btn-guest" bindtap="onTapGuest">游客体验</view>
   </view>
 
   <!-- 头像昵称设置 -->

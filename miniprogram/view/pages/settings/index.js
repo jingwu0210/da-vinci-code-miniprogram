@@ -86,6 +86,6 @@ Page({
   onTapLogout() {
     loginUtil.logout();
     this.setData({ user: null, userType: 'tourist' });
-    wx.redirectTo({ url: ROUTES.LOBBY });
+    wx.reLaunch({ url: ROUTES.LOGIN });
   },
 });

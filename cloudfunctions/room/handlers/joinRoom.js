@@ -13,7 +13,8 @@ module.exports = async function (event, caller, db) {
     if (room.status === 'playing') return { success: false, error: 'ROOM_STARTED', errorCode: 'ROOM_STARTED' };
     if (room.status === 'finished') return { success: false, error: 'ROOM_STARTED', errorCode: 'ROOM_STARTED' };
     if (room.players.length >= room.maxPlayers) return { success: false, error: 'ROOM_FULL', errorCode: 'ROOM_FULL' };
-    if (room.password && room.password !== password) return { success: false, error: 'WRONG_PASSWORD', errorCode: 'WRONG_PASSWORD' };
+    // 密码校验：统一转字符串比较（兼容数字/字符串存储）
+    if (room.password && String(room.password) !== String(password)) return { success: false, error: 'WRONG_PASSWORD', errorCode: 'WRONG_PASSWORD' };
     if (room.players.some(p => p.openid === caller)) return { success: false, error: 'ALREADY_IN_ROOM', errorCode: 'ALREADY_IN_ROOM' };
 
     var joinerName = '';

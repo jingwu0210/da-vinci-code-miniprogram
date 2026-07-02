@@ -12,6 +12,7 @@ Page({
   data: {
     loading: true,
     loggedIn: false,
+    loginLoading: false,
     avatarUrl: DEFAULT_AVATAR,
     nickName: '',
     roomId: null,
@@ -26,13 +27,13 @@ Page({
 
   // ── 微信一键登录 ──
   async onTapLogin() {
-    this.setData({ loading: true });
+    this.setData({ loginLoading: true });
     try {
       await AuthService.initSession();
-      this.setData({ loggedIn: true, loading: false });
+      this.setData({ loggedIn: true, loginLoading: false });
     } catch (e) {
       showToast('登录失败，请重试');
-      this.setData({ loading: false });
+      this.setData({ loginLoading: false });
     }
   },
 

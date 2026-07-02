@@ -1,7 +1,7 @@
 /**
  * 大厅页 — 模式选择、房间加入、用户信息。
  */
-var GameCall = require('../../../cloud/cloud-functions/game-call');
+var RoomCall = require('../../../cloud/cloud-functions/room-call');
 var { ROUTES, buildRoute } = require('../../../common/routes');
 var store = require('../../../common/store');
 var { showToast } = require('../../../common/modal-helper');
@@ -9,11 +9,37 @@ var { showToast } = require('../../../common/modal-helper');
 Page({
   data: {
     user: {}, winRate: 0,
-    showDifficulty: false, selectedDifficulty: 'medium',
+    statusBarHeight: 44,
+    navBarRight: 16,
+    heroTopPadding: 40,
+    // 好友房间弹窗
+    showRoomModal: false,
+    showJoinInput: false,
+    roomCode: '',
+    roomPassword: '',
+  },
+
+  onLoad() {
+    var sys = wx.getSystemInfoSync();
+    var menuBtn = wx.getMenuButtonBoundingClientRect();
+    // 导航栏右边距 = 屏幕宽度 - 胶囊按钮左边缘
+    var navBarRight = sys.windowWidth - menuBtn.left + 8;
+    // 顶部留白：剩余高度 / 3，让内容不要堆在顶部
+    var navH = menuBtn.height + (menuBtn.top - (sys.statusBarHeight || 44)) * 2;
+    var availH = sys.windowHeight - (sys.statusBarHeight || 44) - navH - 40;
+    var heroPad = Math.max(24, Math.floor(availH / 4));
+    if (heroPad > 80) heroPad = 80;
+    this.setData({
+      statusBarHeight: sys.statusBarHeight || 44,
+      navBarRight: navBarRight,
+      heroTopPadding: heroPad,
+    });
   },
 
   onShow() {
     var user = store.get('user') || {};
+    var userType = store.get('userType') || 'tourist';
+
     if (user && !user.isGuest && user.openid && !user.openid.startsWith('t_')) {
       var UserCall = require('../../../cloud/cloud-functions/user-call');
       UserCall.login().then(function(resp) {
@@ -22,41 +48,87 @@ Page({
         }
       }).catch(function() {});
     }
+
     var stats = user.stats || {};
+    // 游客：从本地历史缓存计算战绩（与历史页 _calcStats 对齐逻辑）
+    if (userType === 'tourist') {
+      var login = require('../../../utils/login');
+      var records = login.getLocalRecords();
+      var tw = 0;
+      records.forEach(function(r) {
+        // 找非 AI 的本人玩家（与 history/_calcStats 一致）
+        var me = (r.players || []).find(function(p) { return p.nickName !== 'AI'; });
+        if (me && me.isWinner) tw++;
+      });
+      stats = { totalGames: records.length, wins: tw, losses: records.length - tw };
+      user = Object.assign({}, user, { stats: stats });
+      store.set('user', user);
+    }
+
     var total = stats.totalGames || 0;
     var wins = stats.wins || 0;
-    this.setData({ user, winRate: total > 0 ? Math.round((wins / total) * 100) : 0 });
+    this.setData({ user: user, winRate: total > 0 ? Math.round((wins / total) * 100) : 0 });
   },
 
-  // ── 人机对战 ──
-  onTapAi() { this.setData({ showDifficulty: true, selectedDifficulty: 'medium' }); },
-  onSelectDifficulty(e) { this.setData({ selectedDifficulty: e.currentTarget.dataset.diff }); },
-  onCancelDifficulty() { this.setData({ showDifficulty: false }); },
+  // ── 人机对战 → 单机配置页 ──
+  onTapAi() {
+    wx.navigateTo({ url: ROUTES.SINGLE_CONFIG });
+  },
 
-  async onConfirmAi() {
-    var self = this;
-    var diff = this.data.selectedDifficulty;
-    this.setData({ showDifficulty: false });
+  // ── 好友房间弹窗 ──
+  onTapFriends() {
+    this.setData({ showRoomModal: true, showJoinInput: false, roomCode: '', roomPassword: '' });
+  },
+
+  onCancelRoomModal() {
+    this.setData({ showRoomModal: false, showJoinInput: false });
+  },
+
+  onTapCreateRoom() {
+    this.setData({ showRoomModal: false });
+    wx.navigateTo({ url: buildRoute(ROUTES.ROOM_CREATE, { mode: 'friends' }) });
+  },
+
+  onTapShowJoin() {
+    this.setData({ showJoinInput: true, roomCode: '', roomPassword: '' });
+  },
+
+  onCancelJoinInput() {
+    this.setData({ showJoinInput: false });
+  },
+
+  onRoomCodeInput(e) {
+    this.setData({ roomCode: e.detail.value });
+  },
+
+  onRoomPasswordInput(e) {
+    this.setData({ roomPassword: e.detail.value });
+  },
+
+  async onConfirmJoin() {
+    var code = this.data.roomCode.trim();
+    if (!code) { showToast('请输入房间码'); return; }
+    if (code.length !== 6) { showToast('房间码为6位'); return; }
+
+    var password = this.data.roomPassword.trim();
+    // 密码前端校验：最多4位数字
+    if (password && (password.length > 4 || !/^\d+$/.test(password))) {
+      showToast('密码为最多4位数字'); return;
+    }
+
+    showToast('加入房间中…');
     try {
-      // 直接 initGame 跳过 room/create 页面
-      var playerId = store.get('user') && store.get('user').openid;
-      if (!playerId) playerId = getApp().globalData.touristId;
-      showToast('创建对局中…');
-      var resp = await GameCall.initGame({
-        roomId: 'ai_' + Date.now().toString(36),
-        players: [{ openid: playerId }, { openid: 'ai_1', isAI: true }],
-        mode: 'ai', difficulty: diff,
-      });
-      if (resp.success && resp.data) {
-        store.set('currentGameId', resp.data.gameId);
-        store.set('currentRoom', { mode: 'ai', difficulty: diff });
-        wx.redirectTo({ url: buildRoute(ROUTES.BOARD, { gameId: resp.data.gameId, roomId: 'ai_' + Date.now().toString(36) }) });
-      } else { showToast(resp.error || '创建失败'); }
-    } catch (e) { showToast(e.message || '创建失败'); }
+      var resp = await RoomCall.joinRoom(code, password || null);
+      if (resp.success) {
+        this.setData({ showRoomModal: false, showJoinInput: false });
+        wx.navigateTo({ url: buildRoute(ROUTES.ROOM_DETAIL, { roomId: code }) });
+      } else {
+        showToast(resp.error || '加入失败');
+      }
+    } catch (e) {
+      showToast(e.message || '加入失败');
+    }
   },
-
-  // ── 好友联机 → room/create 页面 ──
-  onTapFriends() { wx.navigateTo({ url: buildRoute(ROUTES.ROOM_CREATE, { mode: 'friends' }) }); },
 
   // ── 通用 ──
   onTapSettings()   { wx.navigateTo({ url: ROUTES.SETTINGS }); },

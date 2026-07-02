@@ -12,6 +12,8 @@ const { AI_ACTION_INTERVAL } = require('../../../common/constants');
 
 Page({
   data: {
+    statusBarHeight: 44,
+    navBarRight: 16,
     phase: Phase.WAITING,
     myHand: [],
     opponents: [],
@@ -36,6 +38,12 @@ Page({
     this._alive = true;
     this._gameId = options.gameId;
     this._roomId = options.roomId;
+    var sys = wx.getSystemInfoSync();
+    var menuBtn = wx.getMenuButtonBoundingClientRect();
+    this.setData({
+      statusBarHeight: sys.statusBarHeight || 44,
+      navBarRight: sys.windowWidth - menuBtn.left + 8,
+    });
 
     const room = store.get('currentRoom') || {};
     this._isAi = room.mode === 'ai' || options.mode === 'ai';

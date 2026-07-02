@@ -1,8 +1,9 @@
 <!-- board: 游戏主界面 -->
 <view class="board-page">
-  <view class="top-bar">
-    <view class="top-left"><text class="turn-num">第{{game.turnNumber || 1}}回合</text></view>
-    <view class="top-right"><text class="top-btn quit-btn" catchtap="onTapQuit">⏏ 退出</text></view>
+  <!-- 自定义顶栏：深色 -->
+  <view class="board-top-bar" style="padding-top:{{statusBarHeight}}px; height:{{statusBarHeight + 44}}px; padding-right:{{navBarRight}}px">
+    <text class="board-turn">第{{game.turnNumber || 1}}回合</text>
+    <text class="board-quit" catchtap="onTapQuit">⏏ 退出</text>
   </view>
 
   <view class="offline-banner" wx:if="{{offline}}"><text>网络已断开，正在重连...</text></view>
@@ -13,7 +14,8 @@
 
   <view class="board-divider"></view>
 
-  <view class="status-bar">
+  <!-- 状态提示 -->
+  <view class="board-status">
     <text wx:if="{{!game.myTurn}}">等待对手行动中…</text>
     <text wx:elif="{{phase === 'drawing' || phase === 'waiting'}}">请选择摸牌颜色</text>
     <text wx:elif="{{phase === 'inserting'}}">请选择插入位置 ▲</text>
@@ -21,10 +23,12 @@
     <text wx:elif="{{phase === 'guessing' && guessTarget}}">选择数字并确认猜测</text>
   </view>
 
+  <!-- 我的手牌 — 屏幕中上部 -->
   <view class="self-area">
     <player-hand tiles="{{myHand}}" isOwn="{{true}}" insertMode="{{game.myTurn && phase === 'inserting'}}" drawnTile="{{game.myDrawnTile}}" aiGuessPosition="{{aiGuessPosition}}" bind:positionSelected="onTapInsertSlot" />
   </view>
 
+  <!-- 操作区 — 底部，猜测面板在此展开 -->
   <view class="action-area">
     <view wx:if="{{game.myTurn && game.poolRemaining.total === 0 && (phase === 'drawing' || phase === 'waiting')}}" class="guess-hint"><text>牌池已空，请直接猜测</text></view>
     <view wx:elif="{{game.myTurn && (phase === 'drawing' || phase === 'waiting')}}" class="draw-choices">

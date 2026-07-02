@@ -13,7 +13,6 @@
 
   <!-- 列表 -->
   <block wx:else>
-    <!-- 统计卡片 -->
     <view class="stats-card">
       <view class="stat-item">
         <text class="stat-num">{{stats.totalGames}}</text>
@@ -31,26 +30,29 @@
       </view>
     </view>
 
-    <!-- 记录列表 -->
     <view class="record-list">
-      <view class="record-card" wx:for="{{records}}" wx:key="*this">
-        <view class="record-top">
-          <text class="record-mode">{{item.mode === 'ai' ? '🤖 人机' : '👥 联机'}}</text>
-          <text class="record-result {{item.myWin ? 'record-win' : 'record-lose'}}">{{item.myWin ? '胜' : '负'}}</text>
-        </view>
-        <view class="record-meta">
-          <text class="record-date">{{item.dateStr}}</text>
-          <text class="record-info">{{item.totalTurns}} 回合 · {{item.durStr}}</text>
-        </view>
-        <view class="record-players">
-          <text wx:for="{{item.players}}" wx:key="openid" wx:for-item="p" class="record-player {{p.isWinner ? 'player-win' : ''}}">
-            {{p.nickName}} · {{p.tilesRemaining}}张{{p.isWinner ? ' 🏆' : ''}}
-          </text>
+      <view class="record-card {{item.myWin ? 'card-win' : 'card-lose'}}" wx:for="{{records}}" wx:key="*this">
+        <view class="record-body">
+          <view class="record-top">
+            <view class="record-mode-row">
+              <image class="record-mode-icon" src="/images/icons/{{item.mode === 'ai' ? 'bot-small' : 'users-small'}}.svg" />
+              <text class="record-mode">{{item.modeLabel}}</text>
+            </view>
+            <text class="record-result {{item.myWin ? 'record-win' : 'record-lose'}}">{{item.myWin ? '胜' : '负'}}</text>
+          </view>
+          <view class="record-meta">
+            <text class="record-date">{{item.dateStr}}</text>
+            <text class="record-info">{{item.totalTurns}} 回合 · {{item.durStr}}</text>
+          </view>
+          <view class="record-players">
+            <text wx:for="{{item.players}}" wx:key="openid" wx:for-item="p" class="record-player {{p.isWinner ? 'player-win' : ''}}">
+              {{p.nickName}} · {{p.tilesRemaining}}张
+            </text>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 加载更多 -->
     <view class="load-more" wx:if="{{hasMore}}">
       <text class="load-more-text">上拉加载更多</text>
     </view>

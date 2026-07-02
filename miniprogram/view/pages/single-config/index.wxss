@@ -1,0 +1,69 @@
+/* 单机配置页 */
+@import '../../../common/theme.wxss';
+
+.page {
+  background: var(--bg-page);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  padding: 48rpx 32rpx;
+}
+
+.title {
+  display: block;
+  text-align: center;
+  font-size: var(--fs-subtitle);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 40rpx;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.opt-card {
+  background: var(--bg-card);
+  border: 1rpx solid var(--divider);
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
+  transition: all 150ms;
+}
+
+.opt-card.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.opt-title {
+  font-size: var(--fs-subtitle);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.opt-card.active .opt-title {
+  color: #FFFFFF;
+}
+
+.opt-desc {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+.opt-card.active .opt-desc {
+  color: rgba(255,255,255,0.7);
+}
+
+.bottom {
+  padding: 0 32rpx calc(env(safe-area-inset-bottom, 0) + 32rpx);
+}

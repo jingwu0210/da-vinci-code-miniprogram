@@ -1,7 +1,5 @@
 {
   "navigationBarTitleText": "历史对局",
-  "navigationBarBackgroundColor": "#2C3A4A",
-  "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 100
 }

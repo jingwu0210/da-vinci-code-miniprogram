@@ -1,12 +1,37 @@
 <!-- 设置页 -->
 <view class="settings-page">
-  <view class="section">
-    <view class="label">游戏设置</view>
-    <view class="row"><text>音效</text><switch checked="{{settings.soundEnabled}}" bindchange="onToggleSound" /></view>
-    <view class="row"><text>振动</text><switch checked="{{settings.vibrationEnabled}}" bindchange="onToggleVibration" /></view>
+  <view class="settings-card">
+    <!-- 音效 -->
+    <view class="setting-row">
+      <text class="setting-label">音效</text>
+      <switch checked="{{settings.soundEnabled}}" bindchange="onToggleSound" color="#1F2937" />
+    </view>
+    <view class="setting-divider"></view>
+
+    <!-- 振动 -->
+    <view class="setting-row">
+      <text class="setting-label">振动</text>
+      <switch checked="{{settings.vibrationEnabled}}" bindchange="onToggleVibration" color="#1F2937" />
+    </view>
+
+    <!-- 清除本地缓存（仅游客） -->
+    <block wx:if="{{userType !== 'wechat'}}">
+      <view class="setting-divider"></view>
+      <view class="setting-row" bindtap="onClearHistory">
+        <text class="setting-label">清除本地缓存</text>
+        <text class="setting-arrow">›</text>
+      </view>
+    </block>
+
+    <view class="setting-divider"></view>
+    <view class="setting-row">
+      <text class="setting-label">版本号</text>
+      <text class="setting-value">V1.0.0</text>
+    </view>
   </view>
-  <view class="section" wx:if="{{userType !== 'wechat'}}">
-    <view class="label">数据</view>
-    <view class="row" bindtap="onClearHistory"><text>清除历史对局</text><text class="row-arrow">›</text></view>
+
+  <!-- 退出登录 -->
+  <view class="logout-area">
+    <button class="btn-danger" bindtap="onTapLogout">退出登录</button>
   </view>
 </view>

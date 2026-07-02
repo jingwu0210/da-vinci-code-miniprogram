@@ -1,10 +1,10 @@
 .agreement-page {
-  background: #2C3A4A;
+  background: var(--bg-page);
   min-height: 100vh;
-  padding: 32rpx;
-  color: #EBEBE5;
+  padding: 32rpx 32rpx calc(env(safe-area-inset-bottom, 0) + 32rpx);
+  color: var(--text-primary);
 }
-.title { font-size: 40rpx; font-weight: 500; margin-bottom: 48rpx; color: #9E8C6C; text-align: center; }
+.title { font-size: 40rpx; font-weight: 700; margin-bottom: 48rpx; color: var(--text-primary); text-align: center; }
 .section { margin-bottom: 32rpx; }
-.h2 { font-size: 28rpx; font-weight: 500; margin-bottom: 12rpx; }
-.text { font-size: 26rpx; line-height: 1.8; color: #8A8A90; }
+.h2 { font-size: var(--fs-body); font-weight: 600; margin-bottom: 12rpx; color: var(--text-primary); }
+.text { font-size: 26rpx; line-height: 1.8; color: var(--text-secondary); }

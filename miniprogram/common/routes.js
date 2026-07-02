@@ -7,6 +7,7 @@ const ROUTES = Object.freeze({
   // 主包
   LOGIN:    '/view/pages/login/index',
   LOBBY:    '/view/pages/lobby/index',
+  SINGLE_CONFIG: '/view/pages/single-config/index',
   BOARD:    '/view/pages/board/index',
   TUTORIAL: '/view/pages/tutorial/index',
   HISTORY:  '/view/pages/history/index',

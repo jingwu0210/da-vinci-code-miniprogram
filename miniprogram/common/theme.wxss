@@ -1,35 +1,55 @@
 /**
  * 全局主题样式 —— 所有页面级 wxss 通过 @import 引用。
- * 值与 docs/DESIGN-SPEC.md §2 保持一致。
+ * 值与 docs/DESIGN-SPEC.md §0 保持一致（浅色主题）。
  */
 
 page {
-  /* === 暗色主题（毛毡）=== */
-  --felt:              #2C3A4A;
-  --black-tile:        #1A1A1E;
-  --white-tile:        #EBEBE5;
-  --text-on-black:     #EBEBE5;
-  --text-on-white:     #1A1A1E;
-  --text-primary:      #EBEBE5;
-  --text-secondary:    #8A8A90;
-  --divider:           #3E4A58;
-  --panel-bg:          rgba(44,58,74,0.95);
+  /* === 配色（浅色主题） === */
+  --bg-page:           #F3F4F6;
+  --bg-card:           #FFFFFF;
+  --bg-card-hover:     #F9FAFB;
+  --text-primary:      #1F2937;
+  --text-secondary:    #6B7280;
+  --text-muted:        #9CA3AF;
+  --divider:           #E5E7EB;
+  --primary:           #1F2937;
+  --primary-hover:     #374151;
+  --primary-foreground:#FFFFFF;
 
-  /* === 功能色 === */
-  --correct:           #4A7C59;
-  --error:             #8B4A4A;
-  --gold:              #9E8C6C;
+  /* 次按钮 */
+  --secondary-button:         #E5E7EB;
+  --secondary-button-foreground: #1F2937;
 
-  /* === 字级 (rpx) === */
-  --fs-title:     44rpx;
-  --fs-subtitle:  36rpx;
+  /* 按钮尺寸 */
+  --btn-radius:        24rpx;
+  --btn-height:        96rpx;
+  --btn-font-size:     32rpx;
+
+  /* 功能色 */
+  --gold:              #C9A84C;
+  --gold-muted:        #B8A282;
+  --correct:           #10B981;
+  --error:             #EF4444;
+
+  /* 牌色（不变，牌面色独立于页面主题） */
+  --black-tile:        #1E1E22;
+  --white-tile:        #E6E6DE;
+  --text-on-black:     #D8D4CC;
+  --text-on-white:     #3A3834;
+
+  /* === 字体 === */
+  --font-title:   'PingFang SC', 'Helvetica Neue', sans-serif;
+  --font-body:    'PingFang SC', -apple-system, sans-serif;
+  --font-mono:    'SF Mono', 'Courier New', monospace;
+  --font-number:  'Georgia', 'Times New Roman', serif;
+
+  --fs-title:     40rpx;
+  --fs-subtitle:  32rpx;
   --fs-body:      28rpx;
-  --fs-caption:   24rpx;
-  --fs-tile-lg:   48rpx;     /* 大牌数字 */
-  --fs-tile:      40rpx;     /* 标准牌数字 */
-  --fs-tile-sm:   32rpx;     /* 小牌数字 */
+  --fs-caption:   22rpx;
+  --fs-small:     20rpx;
 
-  /* === 间距阶梯 (rpx) === */
+  /* === 间距 === */
   --sp-xs:   8rpx;
   --sp-sm:   16rpx;
   --sp-md:   24rpx;
@@ -37,37 +57,25 @@ page {
   --sp-xl:   48rpx;
 
   /* === 圆角 === */
-  --radius-sm:  8rpx;
-  --radius-md:  12rpx;
-  --radius-lg:  16rpx;
+  --radius-sm:   8rpx;
+  --radius-md:   12rpx;
+  --radius-lg:   16rpx;
 
-  /* === 牌体 (1:2 竖立) === */
-  --tile-ratio:      2;            /* 高/宽比，2 = 1:2 竖立 */
-  --tile-radius:     4rpx;
+  /* === 阴影 === */
+  --shadow-card:  0 2rpx 8rpx rgba(0,0,0,0.08);
+  --shadow-btn:   0 2rpx 4rpx rgba(0,0,0,0.1);
+  --shadow-modal: 0 8rpx 24rpx rgba(0,0,0,0.15);
+
+  /* === 牌体 === */
+  --tile-ratio:      2;
+  --tile-radius:     6rpx;
   --tile-gap:        6rpx;
-  --tile-thickness:  4rpx;         /* 3D 厚度偏移 */
-  --tile-shadow:     rgba(0,0,0,0.4);
-  --tile-highlight:  rgba(255,255,255,0.06);
 
-  /* === 面板/卡片 === */
-  --panel-bg:         rgba(235,235,229,0.06);
-  --panel-border:     rgba(235,235,229,0.08);
-  --insert-gold:      #9E8C6C;      /* 插入指示三角色 */
-
-  /* === 基础样式 === */
-  background-color: var(--felt);
-  font-family: 'PingFang SC', -apple-system, sans-serif;
+  /* === 基础 === */
+  background-color: var(--bg-page);
+  font-family: var(--font-body);
   font-size: var(--fs-body);
   color: var(--text-primary);
-}
-
-/* 通用容器 */
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-  padding: var(--sp-md);
 }
 
 /* 通用按钮重置 */
@@ -75,6 +83,8 @@ button {
   background: initial;
   padding: 0;
   margin: 0;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-body);
 }
 button:focus { outline: 0; }
 button::after { border: none; }

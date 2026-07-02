@@ -1,0 +1,39 @@
+<!-- 单机配置页：选择难度 -->
+<view class="page">
+  <view class="main">
+    <text class="title">选择对局难度</text>
+
+    <view class="options">
+      <view
+        class="opt-card {{selected === 'easy' ? 'active' : ''}}"
+        data-diff="easy"
+        bindtap="onSelect"
+      >
+        <text class="opt-title">简单</text>
+        <text class="opt-desc">随机决策，适合新手</text>
+      </view>
+
+      <view
+        class="opt-card {{selected === 'medium' ? 'active' : ''}}"
+        data-diff="medium"
+        bindtap="onSelect"
+      >
+        <text class="opt-title">中等</text>
+        <text class="opt-desc">逻辑推理，旗鼓相当</text>
+      </view>
+
+      <view
+        class="opt-card {{selected === 'hard' ? 'active' : ''}}"
+        data-diff="hard"
+        bindtap="onSelect"
+      >
+        <text class="opt-title">困难</text>
+        <text class="opt-desc">概率矩阵，最强挑战</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom">
+    <button class="btn-primary-fixed" bindtap="onStart">开始游戏</button>
+  </view>
+</view>

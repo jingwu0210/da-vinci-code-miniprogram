@@ -82,9 +82,28 @@ Page({
 function _fmtRecords(records) {
   return records.map(function(r) {
     var dur = r.duration || 0;
+    // 格式化时间：月月/日日 时时:分分
+    var dateStr = '';
+    if (r.createdAt) {
+      var d = new Date(r.createdAt);
+      if (!isNaN(d.getTime())) {
+        dateStr = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' +
+                  String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      }
+    }
+    // 难度/人数标签
+    var modeLabel = r.mode === 'ai' ? '人机对战' : '好友联机';
+    if (r.mode === 'ai' && r.difficulty) {
+      var diffMap = { easy: '简单', medium: '中等', hard: '困难' };
+      modeLabel += '（' + (diffMap[r.difficulty] || r.difficulty) + '）';
+    } else if (r.mode !== 'ai') {
+      var pc = (r.players || []).length || r.playerCount || 0;
+      if (pc) modeLabel += '（' + pc + '人）';
+    }
     return Object.assign({}, r, {
       durStr: dur >= 60 ? Math.floor(dur / 60) + '分' + (dur % 60) + '秒' : dur + '秒',
-      dateStr: (r.createdAt && typeof r.createdAt === 'string') ? r.createdAt.substring(0, 10) : '',
+      dateStr: dateStr,
+      modeLabel: modeLabel,
       myWin: (r.players || []).some(function(p) { return p.isWinner && p.nickName !== 'AI'; }),
     });
   });

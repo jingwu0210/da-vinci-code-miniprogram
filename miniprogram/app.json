@@ -2,6 +2,7 @@
   "pages": [
     "view/pages/login/index",
     "view/pages/lobby/index",
+    "view/pages/single-config/index",
     "view/pages/board/index",
     "view/pages/tutorial/index",
     "view/pages/history/index",
@@ -34,9 +35,9 @@
     }
   },
   "window": {
-    "backgroundColor": "#2C3A4A",
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#2C3A4A",
+    "backgroundColor": "#F3F4F6",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#1F2937",
     "navigationBarTitleText": "达芬奇密码",
     "navigationBarTextStyle": "white"
   },

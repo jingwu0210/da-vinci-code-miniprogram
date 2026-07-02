@@ -4,21 +4,18 @@
 
 .board-page {
   display: flex; flex-direction: column;
-  height: 100vh; background: var(--felt);
+  height: 100vh; background: var(--bg-page);
   overflow: hidden;
 }
 
-/* === 顶部栏 === */
-.top-bar {
+/* === 自定义顶栏（深色） === */
+.board-top-bar {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 var(--sp-md); height: 80rpx; flex-shrink: 0;
-  border-bottom: 1rpx solid var(--divider);
+  padding: 0 var(--sp-md); flex-shrink: 0;
+  background: #1F2937; box-sizing: border-box;
 }
-.top-left  { display: flex; align-items: center; gap: var(--sp-sm); }
-.turn-num  { font-size: var(--fs-body); color: var(--text-primary); font-weight: 500; }
-.top-right { display: flex; gap: var(--sp-md); }
-.top-btn   { font-size: var(--fs-caption); color: var(--text-secondary); }
-.quit-btn  { color: var(--error); }
+.board-turn { font-size: var(--fs-body); color: #FFFFFF; font-weight: 500; }
+.board-quit { font-size: var(--fs-body); color: #EF4444; }
 
 /* === 离线横幅 === */
 .offline-banner {
@@ -39,21 +36,22 @@
 }
 
 /* === 状态引导条 === */
-.status-bar {
-  text-align: center; padding: 12rpx 0; flex-shrink: 0;
-  font-size: var(--fs-caption); color: var(--text-secondary);
-  background: rgba(0,0,0,0.15);
+.board-status {
+  text-align: center; padding: 16rpx 0; flex-shrink: 0;
+  font-size: var(--fs-body); color: var(--text-secondary);
 }
 
 /* === 自己手牌 === */
 .self-area {
-  padding: var(--sp-sm) var(--sp-md); flex-shrink: 0;
+  padding: var(--sp-md) var(--sp-md); flex-shrink: 0;
+  /* 手牌区上移，下方留 gap 给猜测面板 */
 }
 
 /* === 操作区 === */
 .action-area {
-  flex-shrink: 0;
+  flex-shrink: 0; margin-top: auto;
   padding: var(--sp-sm) var(--sp-md) calc(env(safe-area-inset-bottom, 0) + var(--sp-sm));
+  background: var(--bg-card); border-top: 1rpx solid var(--divider);
 }
 
 .waiting-hint {
@@ -68,11 +66,10 @@
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   height: 140rpx;
-  background: var(--panel-bg); border: 1rpx solid var(--divider);
-  border-radius: var(--radius-md);
-  transition: background 0.15s;
+  background: var(--bg-card); border: 1rpx solid var(--divider);
+  border-radius: 24rpx;
 }
-.draw-btn:active { background: rgba(235,235,229,0.12); }
+.draw-btn:active { background: var(--bg-card-hover); }
 .draw-btn-disabled { opacity: 0.3; pointer-events: none; }
 
 .draw-emoji { font-size: 40rpx; line-height: 1; }
@@ -97,13 +94,13 @@
 }
 .btn-continue {
   flex: 1; height: 88rpx; line-height: 88rpx; text-align: center;
-  background: rgba(74,124,89,0.15); color: var(--correct);
-  border: 1rpx solid var(--correct); border-radius: var(--radius-sm);
+  background: rgba(16,185,129,0.1); color: var(--success);
+  border: 1rpx solid var(--success); border-radius: 24rpx;
   font-size: var(--fs-body);
 }
 .btn-end-turn {
   flex: 1; height: 88rpx; line-height: 88rpx; text-align: center;
-  background: rgba(235,235,229,0.06); color: var(--text-primary);
-  border: 1rpx solid var(--divider); border-radius: var(--radius-sm);
+  background: var(--bg-card); color: var(--text-primary);
+  border: 1rpx solid var(--divider); border-radius: 24rpx;
   font-size: var(--fs-body);
 }

@@ -1,30 +1,46 @@
-.page { min-height:100vh; background:#2C3A4A; padding:24rpx 32rpx; }
+.page { min-height:100vh; background:var(--bg-page); padding:24rpx 32rpx calc(env(safe-area-inset-bottom, 0) + 24rpx); }
 
 .loading-ctn, .empty-ctn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:200rpx; }
-.loading-text { font-size:var(--fs-body, 28rpx); color:var(--text-secondary, #8A8A90); }
+.loading-text { font-size:var(--fs-body); color:var(--text-secondary); }
 .empty-emoji { font-size:72rpx; margin-bottom:16rpx; }
-.empty-text { font-size:var(--fs-subtitle, 36rpx); color:var(--text-primary, #EBEBE5); margin-bottom:8rpx; }
-.empty-hint { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); }
+.empty-text { font-size:var(--fs-subtitle); color:var(--text-primary); margin-bottom:8rpx; }
+.empty-hint { font-size:var(--fs-caption); color:var(--text-secondary); }
 
 /* ── 统计卡片 ── */
-.stats-card { display:flex; align-items:center; background:rgba(235,235,229,0.06); border:1rpx solid #3E4A58; border-radius:var(--radius-md, 12rpx); padding:24rpx 0; margin-bottom:24rpx; }
+.stats-card { display:flex; align-items:center; background:var(--bg-card); border-radius:24rpx; padding:32rpx 0; margin-bottom:24rpx; box-shadow:0 4rpx 16rpx rgba(0,0,0,0.08); }
 .stat-item { flex:1; display:flex; flex-direction:column; align-items:center; }
-.stat-num { font-size:var(--fs-subtitle, 36rpx); color:var(--text-primary, #EBEBE5); font-weight:700; }
-.stat-label { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); margin-top:4rpx; }
-.stat-divider { width:1rpx; height:48rpx; background:#3E4A58; }
+.stat-num { font-size:var(--fs-subtitle); color:var(--text-primary); font-weight:700; }
+.stat-label { font-size:var(--fs-caption); color:var(--text-secondary); margin-top:4rpx; }
+.stat-divider { width:1rpx; height:48rpx; background:var(--divider); }
 
 /* ── 记录卡片 ── */
-.record-card { background:rgba(235,235,229,0.06); border:1rpx solid #3E4A58; border-radius:var(--radius-sm, 8rpx); padding:20rpx 24rpx; margin-bottom:16rpx; }
+.record-card {
+  border-radius:24rpx; overflow:hidden;
+  margin-bottom:16rpx; box-shadow:0 4rpx 16rpx rgba(0,0,0,0.08);
+  background:var(--bg-card);
+  border-left:10rpx solid transparent;
+}
+.card-win { border-left-color:#10B981; }
+.card-lose { border-left-color:#EF4444; }
+
+.record-body {
+  padding:20rpx 24rpx;
+}
+
 .record-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8rpx; }
-.record-mode { font-size:var(--fs-body, 28rpx); color:var(--text-primary, #EBEBE5); }
-.record-result { font-size:var(--fs-body, 28rpx); font-weight:600; }
-.record-win { color:#4A7C59; }
-.record-lose { color:var(--text-secondary, #8A8A90); }
+.record-mode-row { display:flex; align-items:center; gap:8rpx; }
+.record-mode-icon { width:36rpx; height:36rpx; flex-shrink:0; }
+.record-mode { font-size:var(--fs-body); color:var(--text-primary); }
+.record-result { font-size:var(--fs-body); font-weight:600; }
+.record-win { color:#10B981; }
+.record-lose { color:#EF4444; }
+
 .record-meta { display:flex; justify-content:space-between; margin-bottom:8rpx; }
-.record-date, .record-info { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); }
+.record-date, .record-info { font-size:var(--fs-caption); color:var(--text-secondary); }
+
 .record-players { display:flex; flex-wrap:wrap; gap:8rpx; }
-.record-player { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); padding:4rpx 12rpx; background:rgba(235,235,229,0.04); border-radius:4rpx; }
-.player-win { color:#C9A84C; }
+.record-player { font-size:var(--fs-caption); color:var(--text-secondary); padding:4rpx 12rpx; border-radius:4rpx; }
+.player-win { color:var(--gold); font-weight:500; }
 
 .load-more { display:flex; justify-content:center; padding:24rpx 0; }
-.load-more-text { font-size:var(--fs-caption, 24rpx); color:var(--text-secondary, #8A8A90); }
+.load-more-text { font-size:var(--fs-caption); color:var(--text-secondary); }
