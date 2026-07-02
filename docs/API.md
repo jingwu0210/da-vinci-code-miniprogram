@@ -465,6 +465,7 @@ type: 'drawTile'
 ■ 错误:
   NOT_YOUR_TURN
   WRONG_PHASE                      // 当前不在 drawing 阶段
+  INVALID_COLOR                     // color 不是 'black' 或 'white'
   GAME_NOT_FOUND
   GAME_ALREADY_FINISHED
 ```
@@ -535,6 +536,7 @@ type: 'makeGuess'
   NOT_YOUR_TURN                    // 不是当前玩家的回合
   WRONG_PHASE                      // 不在 guessing 阶段
   INVALID_TARGET                   // targetOpenid 无效（非玩家/自己）
+  INVALID_VALUE                    // value 不在 -1~11 范围内
   INVALID_POSITION                 // position 越界或该位置已是空位
   ALREADY_REVEALED                 // 该位置的牌已被翻开
   GAME_NOT_FOUND

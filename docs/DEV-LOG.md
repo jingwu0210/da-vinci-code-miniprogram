@@ -20,12 +20,30 @@
 | **未用图片清理** | 删除 10 张 quickstart 模板 PNG + 2 张未引用 SVG |
 | **project.config.json** | projectname → da-vinci-code；uploadWithSourceMap → false；添加 packOptions.ignore；清理 condition 残留 |
 | **README 重写** | 替换 CloudBase 模板为完整的项目介绍（功能/技术栈/结构/架构/文档） |
+| **房间同步修复** | room/detail 用 1.5s 轮询 `getRoom` 替代 CloudBase `.watch()`（根除 `_id` vs `roomId` 错配导致 watch 静默失败） |
+| **initGame 房间更新** | `where + doc(_id)` 替代错误的 `doc(roomId)`（同上根因） |
+| **前端 roomId 归一化** | lobby 输入 + join 流程 + room/detail 入口全链路 `toUpperCase()` |
+| **多人对战通知** | Board 快路径从 watch `doc.turnLog` 直接解析：对手摸牌/猜测/退出 toast |
+| **猜测高亮** | 对手猜测时金色高亮被猜牌 + 2.5s 延迟阻止立即翻牌 |
+| **Guess panel 内嵌** | 去弹窗，固定底部操作栏内 + 美化设计（数字格/按钮） |
+| **Board 兜底** | gameId 缺失时通过 roomId 自动查找；对手 phase 提示在对手名旁 |
+| **切换头像** | room/detail 显示玩家头像（替代表情占位） |
+| **SVG 图标** | copy-white.svg + share-white.svg 替换 emoji 复制/转发 |
+| **history-call.js** | 补上 getErrorMsg() 错误翻译（与 room/game/user-call 一致） |
+| **onLeave try/catch** | room/detail 离开房间补充异常处理 |
+| **云函数 config.json** | room / user / history 补充缺失的 config.json |
+| **安全加固** | game/index.js callerOpenid `_internal` 门控；makeGuess value 范围校验；drawTile color 枚举校验；updateProfile avatarUrl cloud:// 校验 |
 
 ### 文档更新
 
 | 文档 | 更新内容 |
 |------|------|
-| CLAUDE.md | Phase 9 状态更新，libVersion 修正为 2.20.1 |
+| README.md | 完全重写：功能/技术栈/结构/架构/文档 |
+| CLAUDE.md | 暗色→明亮主题，更新文件地图，删除过时引用 |
+| GAME-MODEL.md | 修正状态转移图/表（DRAWING→GUESSING，非 INSERTING） |
+| API.md | 修正 makeGuess(去 guessableTargets)、aiMove(单步)、passTurn(reveal) |
+| ARCHITECTURE.md | 文件树对齐实际代码结构，删除不存在文件，补充 common/ |
+| PRD.md | libVersion 修正，添加 §16.11 断线重连 + §16.12 多人 Corner Cases |
 | DEV-LOG.md | Phase 8 / Phase 9 产出条目 |
 
 ---

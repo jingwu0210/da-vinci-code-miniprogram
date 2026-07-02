@@ -160,7 +160,13 @@ common/      公共层 — 枚举、常量、路由、主题变量、全局 stor
 | 6 — 结算 & 历史 | ✅ | `f8aaec6` ~ `8875580` |
 | 7 — 体验优化（动画/教程/音效/UI/房间） | ✅ | `f59de3c` / `c2a0d62` |
 | 8 — UI 全局风格迭代（明亮主题+深色导航栏+Figma对齐+多页面重构+Lucide图标） | ✅ | `e852dd9` / `e053d80` |
-| 9 — 打磨上线 | ✅ | 待提交 |
+| 9 — 打磨上线 | ✅ | `aec6c66` / `b816348` / `1dad25c` |
+
+### Phase 9 关键改动
+
+**安全模型**: `game/index.js` 的 `callerOpenid` 仅当 `event._internal === true` 时信任（跨云函数调用）。`room/startGame.js` 调用 `game.initGame` 时设置此标记。客户端无法伪造。
+
+**房间同步**: `room/detail` 放弃 CloudBase `.watch()`（`_id` vs `roomId` 错配导致静默失败），改用 1.5s 轮询 `getRoom`。同理 `initGame` 更新 rooms 时用 `where + doc(_id)` 替代直接 `doc(roomId)`。
 
 
 ## 当有问题时需要修复或者debug时
