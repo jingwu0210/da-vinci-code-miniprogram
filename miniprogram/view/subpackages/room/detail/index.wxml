@@ -6,10 +6,8 @@
     <view class="code-bar">
       <text class="code-text">房间号：{{room.roomId}}</text>
       <view class="code-actions">
-        <text class="code-action" bindtap="onCopy">📋</text>
-        <text class="code-action" style="margin-left:16rpx">
-          <button class="share-btn-inline" open-type="share">📤</button>
-        </text>
+        <text class="code-action" bindtap="onCopy">📋 复制</text>
+        <button class="share-btn-inline" open-type="share">📤 转发</button>
       </view>
     </view>
 
@@ -24,7 +22,8 @@
             <text class="p-host" wx:if="{{item.openid === room.creatorOpenid}}">房主</text>
           </view>
           <view class="p-status">
-            <view class="p-dot {{item.isReady ? 'ready' : 'unready'}}"></view>
+            <text wx:if="{{item.isReady}}">🟢</text>
+            <text wx:else>⏳</text>
             <text class="p-ready-text">{{item.isReady ? '已准备' : '未准备'}}</text>
           </view>
         </view>
@@ -35,12 +34,10 @@
       </view>
     </view>
 
-    <!-- 解散房间（仅房主可见） -->
     <view class="disband-area" wx:if="{{isCreator}}">
       <text class="disband-btn" bindtap="onDisband">解散房间</text>
     </view>
 
-    <!-- 底部双按钮 -->
     <view class="bottom-actions">
       <button class="btn-secondary" style="flex:1" bindtap="onToggleReady">{{isReady ? '取消准备' : '准备'}}</button>
       <button class="btn-primary" style="flex:1" bindtap="onStartGame" wx:if="{{isCreator && canStart}}">开始游戏</button>

@@ -3,6 +3,7 @@
  */
 
 const logger = require('../../utils/logger');
+var { getErrorMsg } = require('../../common/error-msg');
 
 const FUNCTION_NAME = 'user';
 
@@ -18,10 +19,14 @@ async function call(type, data) {
       name: FUNCTION_NAME,
       data: Object.assign({ type: type }, data),
     });
-    return resp.result;
+    var result = resp.result || {};
+    if (!result.success && result.error) {
+      result.error = getErrorMsg(result.error);
+    }
+    return result;
   } catch (e) {
     logger.error('UserCall', 'type=' + type + ' failed', e);
-    return { success: false, error: e.errMsg || 'CLOUD_CALL_FAILED' };
+    return { success: false, error: getErrorMsg(e.errMsg || 'CLOUD_CALL_FAILED') };
   }
 }
 

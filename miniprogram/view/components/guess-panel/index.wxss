@@ -8,7 +8,7 @@
 
 .guess-panel {
   position: fixed; left: 0; right: 0; bottom: 0;
-  background: var(--felt);
+  background: var(--bg-card);
   border-top: 1rpx solid var(--divider);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: var(--sp-md) var(--sp-lg) calc(env(safe-area-inset-bottom, 0) + var(--sp-md));

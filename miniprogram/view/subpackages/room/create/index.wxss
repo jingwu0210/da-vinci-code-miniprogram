@@ -1,8 +1,9 @@
 /* 创建房间页 */
-.create-page { background: var(--bg-page); min-height: 100vh; padding-bottom: calc(env(safe-area-inset-bottom, 0) + 32rpx); }
-.main { padding: 48rpx 32rpx; display: flex; flex-direction: column; align-items: center; }
+.create-page { background: var(--bg-page); min-height: 100vh; display:flex; flex-direction:column; }
+.main { flex:1; padding: 48rpx 32rpx 0; display: flex; flex-direction: column; align-items: center; }
+.bottom { padding: 0 32rpx calc(env(safe-area-inset-bottom, 0) + 32rpx); flex-shrink:0; }
 
-.label { font-size: var(--fs-body); color: var(--text-secondary); margin: 32rpx 0 16rpx; display: block; text-align: center; }
+.label { font-size: var(--fs-body); color: var(--text-secondary); margin: 32rpx 0 16rpx; text-align: left; width: 600rpx; }
 
 /* Segmented Control */
 .seg-control {
@@ -11,15 +12,14 @@
 .seg-item {
   width: 172rpx; height: 76rpx; border-radius: 16rpx;
   display: flex; align-items: center; justify-content: center;
-  font-size: var(--fs-subtitle); font-weight: 500;
+  font-size: 30rpx; font-weight: 500;
   background: transparent; color: var(--text-secondary);
   transition: all 150ms;
 }
 .seg-item.active {
   background: var(--primary); color: #FFFFFF;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
 }
 
 /* 输入框 */
-.input { width: 600rpx; height: 96rpx; border-radius: 16rpx; box-sizing: border-box; background: var(--bg-card); border: 1rpx solid var(--divider); color: var(--text-primary); font-size: var(--fs-body); padding: 0 24rpx; }
+.input { width: 600rpx; height: 96rpx; border-radius: 16rpx; box-sizing: border-box; background: var(--bg-card); border: 1rpx solid var(--divider); color: var(--text-primary); font-size: var(--fs-body); padding: 0 24rpx; margin-bottom: 48rpx; }
 .password-input { text-align: center; font-family: 'Courier New', monospace; letter-spacing: 8rpx; }

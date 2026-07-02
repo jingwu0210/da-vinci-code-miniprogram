@@ -34,6 +34,6 @@
   </view>
 
   <view class="bottom">
-    <button class="btn-primary-fixed" bindtap="onStart">开始游戏</button>
+    <view class="btn-primary-fixed" bindtap="onStart">开始游戏</view>
   </view>
 </view>

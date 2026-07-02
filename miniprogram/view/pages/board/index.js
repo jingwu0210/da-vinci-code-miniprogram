@@ -84,6 +84,7 @@ Page({
     if (!color) return;
     this._guessedCorrectly = false;
     this.setData({ canEndTurn: false, guessTarget: null });
+    try { wx.vibrateShort({ type: 'light' }); } catch(e) {}
     audio.play('draw');
     var self = this;
     GameManager.drawTile(this._gameId, color).then(function (result) {
@@ -110,6 +111,7 @@ Page({
         return;
       }
     }
+    try { wx.vibrateShort({ type: 'light' }); } catch(e) {}
     var self = this;
     GameManager.insertTile(this._gameId, pos).then(function () {
       return GameManager.getGameState(self._gameId);
@@ -306,10 +308,15 @@ Page({
 
     var drawnId = state.game.myDrawnTile ? state.game.myDrawnTile.id : null;
     var myHand = drawnId ? state.self.hand.filter(function (t) { return t.id !== drawnId; }) : state.self.hand;
+    // 给对手添加昵称
+    var opponents = (state.opponents || []).map(function(o) {
+      o.nickName = (o.openid && o.openid.indexOf('ai_') === 0) ? 'AI' : (o.nickName || '对手');
+      return o;
+    });
     this.setData({
       phase: state.game.phase,
       myHand: myHand,
-      opponents: state.opponents,
+      opponents: opponents,
       game: state.game,
       offline: false,
     });

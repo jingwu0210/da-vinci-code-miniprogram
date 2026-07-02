@@ -11,78 +11,101 @@
 /* === 自定义顶栏（深色） === */
 .board-top-bar {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 var(--sp-md); flex-shrink: 0;
+  padding: 0 var(--sp-md) 20rpx; flex-shrink: 0;
   background: #1F2937; box-sizing: border-box;
 }
 .board-turn { font-size: var(--fs-body); color: #FFFFFF; font-weight: 500; }
-.board-quit { font-size: var(--fs-body); color: #EF4444; }
+.board-quit { display:flex; align-items:center; gap:6rpx; font-size: var(--fs-body); color: #9CA3AF; }
+.quit-icon { width:32rpx; height:32rpx; }
 
 /* === 离线横幅 === */
 .offline-banner {
-  background: var(--error); color: var(--text-primary);
+  background: var(--error); color: #FFFFFF;
   text-align: center; padding: var(--sp-xs) 0;
   font-size: var(--fs-caption); flex-shrink: 0;
 }
 
-/* === 对手区域 === */
-.opponents-area {
-  flex: 1; padding: var(--sp-xs) 0; overflow-y: auto;
+/* === 主滚动区 === */
+.board-scroll {
+  flex: 1; padding: var(--sp-sm) var(--sp-md);
+  box-sizing: border-box;
 }
 
-/* === 分隔线 === */
-.board-divider {
-  height: 2rpx; background: var(--divider);
-  margin: 0 var(--sp-md); flex-shrink: 0;
+/* === 对手卡片 === */
+.opponent-card {
+  background: var(--bg-card); border-radius: 24rpx;
+  padding: 20rpx 24rpx; margin-bottom: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+  box-sizing: border-box; overflow: hidden;
+  border-left: 8rpx solid transparent;
+}
+.opponent-card.active-turn {
+  border-left-color: #3B82F6;
+}
+.opponent-card-header {
+  display: flex; align-items: center; gap: 4rpx; margin-bottom: 8rpx;
+}
+.opponent-card-name {
+  font-size: var(--fs-caption); color: var(--text-secondary); font-weight: 500;
 }
 
-/* === 状态引导条 === */
+/* === 状态提示 === */
 .board-status {
-  text-align: center; padding: 16rpx 0; flex-shrink: 0;
-  font-size: var(--fs-body); color: var(--text-secondary);
+  text-align: center; padding: 16rpx 0;
+  font-size: var(--fs-caption); color: var(--text-secondary);
 }
 
-/* === 自己手牌 === */
-.self-area {
-  padding: var(--sp-md) var(--sp-md); flex-shrink: 0;
-  /* 手牌区上移，下方留 gap 给猜测面板 */
+/* === 我的手牌卡片 === */
+.self-card {
+  background: var(--bg-card); border-radius: 24rpx;
+  padding: 16rpx 24rpx 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.08);
+  margin-bottom: var(--sp-sm);
+  border-left: 8rpx solid transparent;
+}
+.self-card.active-turn {
+  border-left-color: #3B82F6;
+}
+.self-card-label {
+  font-size: var(--fs-caption); color: var(--text-secondary);
+  display: block; margin-bottom: 4rpx;
+}
+.turn-hint {
+  color: var(--gold);
 }
 
-/* === 操作区 === */
+/* === 底部操作栏 === */
 .action-area {
-  flex-shrink: 0; margin-top: auto;
+  flex-shrink: 0;
   padding: var(--sp-sm) var(--sp-md) calc(env(safe-area-inset-bottom, 0) + var(--sp-sm));
   background: var(--bg-card); border-top: 1rpx solid var(--divider);
 }
 
-.waiting-hint {
-  text-align: center; font-size: var(--fs-body);
-  color: var(--text-secondary); padding: var(--sp-lg) 0;
-}
-
 /* === 摸牌按钮 === */
 .draw-choices { display: flex; gap: var(--sp-md); }
-
 .draw-btn {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  height: 140rpx;
-  background: var(--bg-card); border: 1rpx solid var(--divider);
-  border-radius: 24rpx;
+  height: 140rpx; border-radius: 24rpx;
 }
-.draw-btn:active { background: var(--bg-card-hover); }
+.draw-btn:active { opacity: 0.85; }
 .draw-btn-disabled { opacity: 0.3; pointer-events: none; }
-
-.draw-emoji { font-size: 40rpx; line-height: 1; }
-.draw-label { font-size: var(--fs-body); color: var(--text-primary); font-weight: 500; margin-top: 4rpx; }
-.draw-count { font-size: var(--fs-caption); color: var(--text-secondary); margin-top: 4rpx; }
-
-/* === 插牌提示 === */
-.insert-hint {
-  text-align: center; font-size: var(--fs-body);
-  color: var(--insert-gold); padding: var(--sp-lg) 0;
+.draw-black {
+  background: var(--black-tile);
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.2);
 }
+.draw-white {
+  background: var(--white-tile);
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+}
+.draw-label { font-size: var(--fs-body); font-weight: 500; margin-top: 4rpx; }
+.draw-black .draw-label { color: var(--text-on-black); }
+.draw-white .draw-label { color: var(--text-on-white); }
+.draw-count { font-size: var(--fs-caption); margin-top: 4rpx; }
+.draw-black .draw-count { color: rgba(216,212,204,0.6); }
+.draw-white .draw-count { color: rgba(58,56,52,0.6); }
 
-/* === 猜测提示（未选目标）=== */
+/* === 猜测提示 === */
 .guess-hint {
   text-align: center; font-size: var(--fs-body);
   color: var(--gold); padding: var(--sp-lg) 0;
@@ -90,7 +113,7 @@
 
 /* === 猜对后操作 === */
 .post-guess {
-  display: flex; gap: var(--sp-md); padding: var(--sp-md) var(--sp-lg);
+  display: flex; gap: var(--sp-md); padding: var(--sp-md) 0;
 }
 .btn-continue {
   flex: 1; height: 88rpx; line-height: 88rpx; text-align: center;

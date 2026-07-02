@@ -7,7 +7,7 @@
               class="insert-slot" data-position="{{index}}" catchtap="onSlotTap">
           <text class="slot-arrow">▲</text>
         </view>
-        <view id="tile-{{item.position}}"><game-tile tile="{{item}}" faceUp="{{true}}" size="large" selected="{{aiGuessPosition === item.position}}" position="{{item.position}}" isOwn="{{true}}" /></view>
+        <view id="tile-{{item.position}}"><game-tile tile="{{item}}" faceUp="{{true}}" size="large" selected="{{aiGuessPosition === item.position}}" disabled="{{item.isRevealed}}" position="{{item.position}}" isOwn="{{true}}" /></view>
       </block>
       <view wx:if="{{insertMode && validPositions.indexOf(tiles.length) !== -1}}"
             class="insert-slot" data-position="{{tiles.length}}" catchtap="onSlotTap">
@@ -15,7 +15,7 @@
       </view>
       <view id="drawn-end" style="width:1rpx;height:1rpx;flex-shrink:0;"></view>
       <view class="drawn-area" wx:if="{{drawnTile}}">
-        <game-tile tile="{{drawnTile}}" faceUp="{{true}}" size="large" drawn="{{true}}" position="{{drawnTile.position}}" isOwn="{{true}}" />
+        <game-tile tile="{{drawnTile}}" faceUp="{{true}}" size="large" drawn="{{true}}" disabled="{{drawnTile.isRevealed}}" position="{{drawnTile.position}}" isOwn="{{true}}" />
       </view>
     </view>
   </scroll-view>

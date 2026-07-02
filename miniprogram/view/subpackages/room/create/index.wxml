@@ -3,16 +3,17 @@
   <view class="main">
     <text class="label">选择人数</text>
 
-    <!-- Segmented Control -->
     <view class="seg-control">
-      <view class="seg-item {{playerCount===2?'active':''}}" bindtap="onPlayerCount" data-n="2">2</view>
-      <view class="seg-item {{playerCount===3?'active':''}}" bindtap="onPlayerCount" data-n="3">3</view>
-      <view class="seg-item {{playerCount===4?'active':''}}" bindtap="onPlayerCount" data-n="4">4</view>
+      <view class="seg-item {{playerCount===2?'active':''}}" bindtap="onPlayerCount" data-n="2">2 人</view>
+      <view class="seg-item {{playerCount===3?'active':''}}" bindtap="onPlayerCount" data-n="3">3 人</view>
+      <view class="seg-item {{playerCount===4?'active':''}}" bindtap="onPlayerCount" data-n="4">4 人</view>
     </view>
 
     <text class="label">房间密码（选填，最多4位数字）</text>
     <input class="input password-input" value="{{password}}" bindinput="onPasswordInput" placeholder="4位数字" maxlength="4" type="number" />
+  </view>
 
-    <button class="btn-primary-fixed" bindtap="onCreate">创建房间</button>
+  <view class="bottom">
+    <view class="btn-primary-fixed" bindtap="onCreate">创建房间</view>
   </view>
 </view>

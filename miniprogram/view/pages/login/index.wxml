@@ -4,7 +4,7 @@
   <view class="hero">
     <view class="hero-card c1"><view class="hero-tile black"><text class="hero-num">5</text><view class="hero-line"></view></view></view>
     <view class="hero-card c2"><view class="hero-tile white"><text class="hero-num" style="color:#1A1A1E">3</text><view class="hero-line white-line"></view></view></view>
-    <view class="hero-card c3"><view class="hero-tile black j"><text class="hero-num" style="color:#C9A84C;font-size:32rpx">—</text></view></view>
+    <view class="hero-card c3"><view class="hero-tile black j"><text class="hero-num" style="color:#C9A84C;font-size:48rpx">—</text></view></view>
     <view class="hero-card c4"><view class="hero-tile white"><text class="hero-num" style="color:#1A1A1E">8</text><view class="hero-line white-line"></view></view></view>
   </view>
 
@@ -18,7 +18,10 @@
   <view class="actions" wx:if="{{!loggedIn && !loading}}">
     <view class="btn btn-wechat" bindtap="onTapLogin">
       <view class="btn-spinner" wx:if="{{loginLoading}}"></view>
-      <text wx:else>微信快捷登录</text>
+      <block wx:else>
+        <image class="btn-icon" src="/images/icons/chat.svg" />
+        <text>微信快捷登录</text>
+      </block>
     </view>
     <view class="btn btn-guest" bindtap="onTapGuest">游客体验</view>
   </view>

@@ -1,26 +1,26 @@
 .login-page { background:var(--bg-page); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 60rpx; overflow-x:hidden; width:100vw; box-sizing:border-box; }
 
 /* === 牌组展示：错落堆叠 === */
-.hero { position:relative; width:340rpx; height:210rpx; margin-bottom:48rpx; }
+.hero { position:relative; width:510rpx; height:320rpx; margin-bottom:48rpx; }
 .hero-card { position:absolute; }
-.hero-tile { width:80rpx; height:112rpx; border-radius:6rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 2rpx 8rpx rgba(0,0,0,0.3); }
+.hero-tile { width:120rpx; height:168rpx; border-radius:8rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 3rpx 12rpx rgba(0,0,0,0.3); }
 .hero-tile.black { background:#1E1E22; }
 .hero-tile.white { background:#E8E4DC; }
-.hero-num { font-family:'PingFang SC',sans-serif; font-weight:700; font-size:40rpx; line-height:1; color:#D8D4CC; }
+.hero-num { font-family:'PingFang SC',sans-serif; font-weight:700; font-size:60rpx; line-height:1; color:#D8D4CC; }
 .hero-tile.white .hero-num { color:#3A3834; }
-.hero-line { width:36rpx; height:1rpx; margin-top:4rpx; background:rgba(255,255,255,0.15); }
+.hero-line { width:54rpx; height:1rpx; margin-top:6rpx; background:rgba(255,255,255,0.15); }
 .white-line { background:rgba(0,0,0,0.15); }
 
 /* 4 张牌横向扇形展开 */
-.c1 { top:56rpx; left:0; transform:rotate(-12deg); z-index:2; }
-.c2 { top:0; left:76rpx; transform:rotate(6deg); z-index:1; }
-.c3 { top:28rpx; left:148rpx; transform:rotate(-4deg); z-index:3; }
-.c4 { top:72rpx; left:218rpx; transform:rotate(14deg); z-index:2; }
+.c1 { top:85rpx; left:0; transform:rotate(-12deg); z-index:2; }
+.c2 { top:0; left:115rpx; transform:rotate(6deg); z-index:1; }
+.c3 { top:42rpx; left:225rpx; transform:rotate(-4deg); z-index:3; }
+.c4 { top:110rpx; left:330rpx; transform:rotate(14deg); z-index:2; }
 
 /* === 品牌 === */
 .brand { text-align:center; margin-bottom:64rpx; }
-.brand-title { font-size:42rpx; font-weight:700; color:#C9A84C; letter-spacing:10rpx; line-height:1.5; }
-.brand-sub { font-size:26rpx; color:#6B7280; margin-top:4rpx; }
+.brand-title { font-size:60rpx; font-weight:700; color:#C9A84C; letter-spacing:12rpx; line-height:1.5; }
+.brand-sub { font-size:20rpx; color:#6B7280; margin-top:4rpx; }
 
 /* === 按钮 === */
 .actions { display:flex; flex-direction:column; align-items:center; width:100%; gap:20rpx; margin-bottom:48rpx; }
@@ -33,6 +33,7 @@
   background:var(--primary); color:var(--primary-foreground);
   box-shadow:0 2rpx 4rpx rgba(0,0,0,0.1);
 }
+.btn-icon { width:40rpx; height:40rpx; flex-shrink:0; }
 .btn-wechat:active { opacity:0.85; }
 .btn-guest {
   background:var(--secondary-button); color:var(--secondary-button-foreground);

@@ -19,15 +19,9 @@ Page({
     var self = this;
     var diff = this.data.selected;
 
-    // 难度 → 人数
-    var playerCount = diff === 'easy' ? 2 : diff === 'medium' ? 3 : 4;
-
-    // 构造 AI 玩家
+    // AI 对战固定 1v1，难度仅影响 AI 策略
     var playerId = (store.get('user') && store.get('user').openid) || getApp().globalData.touristId;
-    var players = [{ openid: playerId }];
-    for (var i = 1; i < playerCount; i++) {
-      players.push({ openid: 'ai_' + i, isAI: true });
-    }
+    var players = [{ openid: playerId }, { openid: 'ai_1', isAI: true }];
 
     showToast('创建对局中…');
     try {

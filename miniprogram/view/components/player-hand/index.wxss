@@ -1,23 +1,18 @@
-/* player-hand: 手牌排列 + 插入三角 */
-
-.player-hand {
-  display: flex; align-items: center;
-  padding: var(--sp-sm) 0;
-}
+/* player-hand: 手牌排列 + 插入三角 + 浮牌 */
 
 .hand-scroll {
-  width: 100%; height: 220rpx;
+  width: 100%; height: 200rpx;
   white-space: nowrap;
 }
 
 .hand-row {
   display: inline-flex; align-items: center; gap: var(--tile-gap);
-  height: 220rpx;
+  height: 200rpx;
 }
 
 .insert-slot {
   display: inline-flex; align-items: flex-end; justify-content: center;
-  height: 192rpx; width: 32rpx; flex-shrink: 0;
+  height: 172rpx; width: 32rpx; flex-shrink: 0;
   cursor: pointer; padding-bottom: 8rpx; box-sizing: border-box;
 }
 

@@ -23,7 +23,8 @@
       "Bash(sed -i '' 's/E.sortKey\\(drawn\\)\\\\[0\\\\] <= E.sortKey\\(handWithout\\\\[i\\\\]\\)\\\\[0\\\\]/E.sortKey\\(drawn\\)[0] <= E.sortKey\\(handWithout[i]\\)[0] \\\\&\\\\& \\(E.sortKey\\(drawn\\)[0] !== E.sortKey\\(handWithout[i]\\)[0] || E.sortKey\\(drawn\\)[1] <= E.sortKey\\(handWithout[i]\\)[1]\\)/' passTurn.js)",
       "Bash(sed -i '' 's/const handWithout = hand.filter\\(t => t.id !== gs.drawnTileId\\);/const handWithout = hand.filter\\(function\\(t\\) { return t.id !== gs.drawnTileId \\\\&\\\\& !t.isJoker; }\\);/' makeGuess.js)",
       "Bash(sed -i '' 's/const handWithout = hand.filter\\(t => t.id !== gs.drawnTileId\\);/const handWithout = hand.filter\\(function\\(t\\) { return t.id !== gs.drawnTileId \\\\&\\\\& !t.isJoker; }\\);/' passTurn.js)",
-      "Bash(git -C /Users/jingwu/WeChatProjects/da-vinci-code-miniprogram diff --stat HEAD)"
+      "Bash(git -C /Users/jingwu/WeChatProjects/da-vinci-code-miniprogram diff --stat HEAD)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   },
   "enabledMcpjsonServers": [
